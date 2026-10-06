@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مُثبِّت القرآن</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#f6f8f4;--card:#fff;--tx:#1c2a1f;--pri:#1b5e20;--mut:#6b7a6e;--bd:#dde5da;--bad:#c62828}
+:root:not([data-theme=light]){}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101712;--card:#1a241c;--tx:#e8efe9;--pri:#66bb6a;--mut:#9aab9d;--bd:#2b392e}}
+:root[data-theme=dark]{--bg:#101712;--card:#1a241c;--tx:#e8efe9;--pri:#66bb6a;--mut:#9aab9d;--bd:#2b392e}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,"Segoe UI",Tahoma,sans-serif;padding-bottom:80px}
+h1{font-size:20px;margin:0;padding:14px 16px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:10px 12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{justify-content:space-between}
+button{font:inherit;border:0;border-radius:10px;padding:10px 14px;background:var(--pri);color:#fff}
+button.g{background:transparent;color:var(--pri);border:1px solid var(--pri)}button.r{background:var(--bad)}
+input,select,textarea{font:inherit;width:100%;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);margin:4px 0}
+.m{color:var(--mut);font-size:13px}.big{font-size:26px;line-height:2;text-align:center}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:none;color:var(--mut);border-radius:0;font-size:13px;padding:10px 2px}nav button.on{color:var(--pri);font-weight:700}
+.chip{padding:6px 10px;border-radius:20px;border:1px solid var(--bd);display:inline-block;margin:2px}.chip.on{background:var(--pri);color:#fff}
+.bar{display:flex;align-items:flex-end;gap:6px;height:120px}.bar div{flex:1;background:var(--pri);border-radius:6px 6px 0 0;text-align:center;font-size:11px;color:#fff;min-height:3px}
+#ban{position:fixed;top:env(safe-area-inset-top,0px);left:8px;right:8px;z-index:9}
+.sh{position:fixed;inset:0;background:#0008;display:flex;align-items:flex-end;z-index:8}.sh>div{background:var(--card);width:100%;padding:16px;border-radius:18px 18px 0 0}.sh button{width:100%;margin:5px 0}
+</style></head><body>
+<h1 style="display:flex;justify-content:space-between;align-items:center">📖 مُثبِّت القرآن <button class="g" style="padding:6px 12px" onclick="acc()">👤 حسابي</button></h1><div id="ban"></div><main id="v"></main><div id="sh"></div>
+<footer style="text-align:center;font-size:11px;color:var(--mut);padding:18px 12px 8px">تم إنشاء هذا الموقع بواسطة عمار العيد بتنفيذ الذكاء الاصطناعي</footer>
+<nav id="nav"></nav>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* ===== إعدادات Firebase: الصق هنا بيانات مشروعك ===== */
+const FB={apiKey:"AIzaSyDU-xm0U4NFXFa57Auv10967REt8n5PB3Y",authDomain:"quran-app-a042f.firebaseapp.com",projectId:"quran-app-a042f",storageBucket:"quran-app-a042f.firebasestorage.app",messagingSenderId:"353485701859",appId:"1:353485701859:web:f5096b38b998de6adefbd6"};
+const L=[1,3,7,30],D=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const SUR='الفاتحة البقرة آل_عمران النساء المائدة الأنعام الأعراف الأنفال التوبة يونس هود يوسف الرعد إبراهيم الحجر النحل الإسراء الكهف مريم طه الأنبياء الحج المؤمنون النور الفرقان الشعراء النمل القصص العنكبوت الروم لقمان السجدة الأحزاب سبأ فاطر يس الصافات ص الزمر غافر فصلت الشورى الزخرف الدخان الجاثية الأحقاف محمد الفتح الحجرات ق الذاريات الطور النجم القمر الرحمن الواقعة الحديد المجادلة الحشر الممتحنة الصف الجمعة المنافقون التغابن الطلاق التحريم الملك القلم الحاقة المعارج نوح الجن المزمل المدثر القيامة الإنسان المرسلات النبأ النازعات عبس التكوير الانفطار المطففين الانشقاق البروج الطارق الأعلى الغاشية الفجر البلد الشمس الليل الضحى الشرح التين العلق القدر البينة الزلزلة العاديات القارعة التكاثر العصر الهمزة الفيل قريش الماعون الكوثر الكافرون النصر المسد الإخلاص الفلق الناس'.split(' ').map(x=>x.replace('_',' '));
+const MSG=['حبيب القرآن، موعدك الآن مع وردك 🌿','خيركم من تعلّم القرآن وعلّمه 📖','دقائق قليلة تثبّت حفظك لأيام طويلة ✨','ورتّل القرآن ترتيلاً.. جلستك بانتظارك'];
+let S={tasks:[],logs:[],alarms:[],mist:[],skipFri:true,id:1};
+try{Object.assign(S,JSON.parse(localStorage.getItem('qmrm')||'{}'))}catch(e){}
+const save=()=>{S._u=Date.now();try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}push()};
+const $=s=>document.querySelector(s),ymd=d=>d.toLocaleDateString('en-CA'),hm=d=>d.toTimeString().slice(0,5);
+const hij=d=>d.toLocaleDateString('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let tab='home',qz=null,rev=false,qn=0,qok=0,addDays=[0,1,2,3,4,6];
+const tabs=[['home','📖','اليوم'],['quiz','📝','اختبار'],['al','⏰','منبّهات'],['st','📊','إحصائيات'],['ar','🗂','الأرشيف']];
+function go(t){tab=t;draw()}
+function draw(){
+ $('#nav').innerHTML=tabs.map(([k,i,n])=>`<button class="${k==tab?'on':''}" onclick="go('${k}')">${i}<br>${n}</button>`).join('');
+ $('#v').innerHTML={home:home,quiz:quiz,al:alarms,st:stats,ar:archive}[tab]();
+}
+/* ---------- المهام ---------- */
+function due(){const e=new Date();e.setHours(23,59,59);return S.tasks.filter(t=>!t.arch&&new Date(t.next)<=e)}
+function home(){
+ const d=due();
+ return `<div class="c"><b>مهمة جديدة</b>
+ <div style="position:relative"><input id="ts" placeholder="اسم السورة (اكتب أو اختر بالسهم)" autocomplete="off" style="padding-left:50px"><button type="button" class="g" onclick="sdT()" style="position:absolute;left:5px;top:9px;padding:4px 11px;font-size:14px">▼</button>
+ <div id="sl" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:5;max-height:220px;overflow-y:auto;background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:0 4px 14px #0003">${SUR.map((n,i)=>`<div onclick="sdP(${i})" style="padding:10px 12px;border-bottom:1px solid var(--bd)">${i+1}. ${n}</div>`).join('')}</div></div><div class="row"><input id="ta" type="number" placeholder="من آية" style="flex:1"><input id="tb" type="number" placeholder="إلى آية" style="flex:1"></div>
+ <select id="tt"><option>حفظ</option><option>مراجعة</option></select>
+ <textarea id="tx" rows="2" placeholder="(اختياري) نص الآيات لاستخدامه في الاختبار"></textarea>
+ <button onclick="addTask()">إضافة</button>
+ <label class="m"><input type="checkbox" style="width:auto" ${S.skipFri?'checked':''} onchange="S.skipFri=this.checked;save()"> استثناء يوم الجمعة من الجدولة</label></div>
+ <div class="m" style="margin:0 16px">مهام اليوم (${d.length})</div>`+
+ (d.map(t=>`<div class="c"><div class="row sp"><b>سورة ${esc(t.s)}</b><span class="m">${t.type} • ${t.a}–${t.b}</span></div>
+  <div class="row sp" style="margin-top:8px;padding:8px;border:1px solid var(--bd);border-radius:12px"><button class="g" style="padding:6px 10px" onclick="tmAdj(${t.id},-5)">−5</button><b id="tm${t.id}" style="font-size:28px;font-variant-numeric:tabular-nums">${fmt(tmL(t))}</b><button class="g" style="padding:6px 10px" onclick="tmAdj(${t.id},5)">+5</button><button onclick="tmToggle(${t.id})">${t.tm&&t.tm.run?'⏸ إيقاف':'⏱ تشغيل'}</button><button class="g" onclick="tmReset(${t.id})">↺</button></div>
+  <div class="row" style="margin-top:8px"><button class="g" onclick="startT(${t.id})">${t.st?'⏱ بدأت '+hm(new Date(t.st)):'▶ ابدأ'}</button><button onclick="rate(${t.id})">✅ تم</button><button class="g" onclick="archT(${t.id},true)">📦</button><button class="g" onclick="delT(${t.id})">🗑</button></div></div>`).join('')||'<div class="c m">لا مهام اليوم، بارك الله فيك 🌿</div>');
+}
+function sdT(){const l=$('#sl');l.style.display=l.style.display=='none'?'block':'none'}
+function sdP(i){$('#ts').value=SUR[i];$('#sl').style.display='none'}
+function addTask(){const s=$('#ts').value.trim();if(!s)return;
+ S.tasks.push({id:S.id++,s,a:+$('#ta').value||1,b:+$('#tb').value||1,type:$('#tt').value,txt:$('#tx').value.trim(),stage:0,next:new Date().toISOString()});save();draw()}
+function startT(id){const t=S.tasks.find(x=>x.id==id);t.st=new Date().toISOString();save();draw()}
+function delT(id){S.tasks=S.tasks.filter(x=>x.id!=id);save();draw()}
+function rate(id){$('#sh').innerHTML=`<div class="sh"><div><b>كيف كان أداؤك؟</b>
+ <button onclick="done(${id},'mastered')">🟢 أتقنت تماماً</button><button onclick="done(${id},'light')">🟡 بحاجة لمراجعة خفيفة</button><button class="r" onclick="done(${id},'hard')">🔴 واجهت صعوبة</button><button class="g" onclick="$('#sh').innerHTML=''">إلغاء</button></div></div>`}
+function done(id,r){
+ const t=S.tasks.find(x=>x.id==id);if(!t)return;const n=new Date(),st=t.st?new Date(t.st):n;
+ S.logs.push({t:id,s:t.s,a:t.a,b:t.b,date:ymd(n),h:hij(n),day:D[n.getDay()],time:hm(n),start:hm(st),dur:Math.max(1,Math.round((n-st)/60000)),r});
+ const nx=r=='mastered'?(t.type=='حفظ'?0:Math.min(t.stage+1,3)):r=='light'?t.stage:0;
+ let nd=new Date(n.getTime()+(r=='hard'?1:L[nx])*864e5);if(S.skipFri&&nd.getDay()==5)nd=new Date(nd.getTime()+864e5);
+ const fin=r=='mastered'&&t.type=='مراجعة'&&t.stage==3;
+ Object.assign(t,{type:'مراجعة',stage:nx,next:nd.toISOString(),st:null});if(fin){t.arch=true;t.doneAt=n.toISOString()}save();$('#sh').innerHTML='';draw()}
+/* ---------- المؤقت ---------- */
+const fmt=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+const tmG=t=>t.tm||(t.tm={dur:1800,left:1800,run:false,end:0});
+const tmL=t=>{const m=tmG(t);return m.run?Math.max(0,Math.round((m.end-Date.now())/1000)):m.left};
+function tmToggle(id){const t=S.tasks.find(x=>x.id==id),m=tmG(t);
+ if(m.run){m.left=tmL(t);m.run=false}else{if(m.left<=0)m.left=m.dur;m.end=Date.now()+m.left*1000;m.run=true;if(!t.st)t.st=new Date().toISOString()}save();draw()}
+function tmReset(id){const m=tmG(S.tasks.find(x=>x.id==id));m.run=false;m.left=m.dur;save();draw()}
+function tmAdj(id,d){const m=tmG(S.tasks.find(x=>x.id==id));if(m.run)return;m.dur=Math.max(60,m.dur+d*60);m.left=m.dur;save();draw()}
+setInterval(()=>{S.tasks.forEach(t=>{const m=t.tm;if(!m||!m.run)return;const l=tmL(t),e=document.getElementById('tm'+t.id);if(e)e.textContent=fmt(l);
+ if(l<=0){m.run=false;m.left=0;save();beep();try{if(Notification.permission=='granted')new Notification('انتهى المؤقت ⏱',{body:'سورة '+t.s})}catch(x){}
+ $('#ban').innerHTML=`<div class="c" style="border-color:var(--pri)"><b>انتهى المؤقت ⏱</b><div class="m">سورة ${esc(t.s)}</div><div class="row" style="margin-top:8px"><button onclick="$('#ban').innerHTML=''">إغلاق</button></div></div>`;if(tab=='home')draw()}})},1000);
+/* ---------- الاختبار ---------- */
+function pickQ(){
+ const v=S.tasks.filter(t=>t.txt);let pool=v;
+ if(S.mist.length&&Math.random()<.5){const m=S.mist[Math.floor(Math.random()*S.mist.length)];const f=v.find(t=>t.id==m.t);if(f)return f}
+ return pool.length?pool[Math.floor(Math.random()*pool.length)]:null}
+function quiz(){
+ if(!qz)qz=pickQ();
+ if(!qz)return '<div class="c m">أضف مهمة مع كتابة نص الآيات (الحقل الاختياري) ليظهر الاختبار هنا.</div>';
+ const w=qz.txt.split(/\s+/),h=Math.ceil(w.length/2);
+ return `<div class="c"><div class="m">سورة ${esc(qz.s)} • الآيات ${qz.a}–${qz.b} • النتيجة ${qok}/${qn}</div>
+ <p class="big">${rev?esc(qz.txt):esc(w.slice(0,h).join(' '))+' ...'}</p>
+ ${rev?`<div class="row"><button class="r" style="flex:1" onclick="ans(0)">أخطأت ❌</button><button style="flex:1" onclick="ans(1)">أصبت ✅</button></div>`:`<button onclick="rev=true;draw()" style="width:100%">إظهار الإجابة</button>`}</div>`}
+function ans(ok){qn++;if(ok){qok++;nextQ();return}
+ $('#sh').innerHTML=`<div class="sh"><div><b>نوع الخطأ</b>${['نسيان كلمة','خطأ في التشكيل','تقديم وتأخير','تشابه لفظي'].map(x=>`<button onclick="mist('${x}')">${x}</button>`).join('')}</div></div>`}
+function mist(x){S.mist.push({t:qz.id,type:x,d:ymd(new Date())});save();$('#sh').innerHTML='';nextQ()}
+function nextQ(){qz=null;rev=false;draw()}
+/* ---------- المنبّهات ---------- */
+function alarms(){
+ const perm=('Notification'in window)?Notification.permission:'unsupported';
+ return `<div class="c"><b>منبّه جديد</b><input id="at" type="time" value="05:00"><select id="ak"><option>حفظ</option><option>مراجعة</option></select>
+ <div>${D.map((d,i)=>`<span class="chip ${addDays.includes(i)?'on':''}" onclick="addDays=addDays.includes(${i})?addDays.filter(x=>x!=${i}):[...addDays,${i}];draw()">${d}</span>`).join('')}</div>
+ <button onclick="addAl()" style="margin-top:8px">إضافة المنبّه</button></div>
+ ${perm!='granted'&&perm!='unsupported'?'<div class="c"><button onclick="Notification.requestPermission().then(draw)">🔔 السماح بالإشعارات</button></div>':''}
+ <div class="c m">⚠️ المنبّهات تعمل ما دامت هذه الصفحة مفتوحة على الشاشة. للتنبيه وهي مغلقة استعمل منبّه الهاتف بجانبها.</div>`+
+ S.alarms.map(a=>`<div class="c"><div class="row sp"><b style="font-size:22px">${a.time} • ${a.k}</b><button class="g" onclick="S.alarms=S.alarms.filter(x=>x.id!=${a.id});save();draw()">🗑</button></div>
+ <div class="m">${a.days.map(i=>D[i]).join('، ')}</div><label><input type="checkbox" style="width:auto" ${a.on?'checked':''} onchange="S.alarms.find(x=>x.id==${a.id}).on=this.checked;save()"> مفعّل</label></div>`).join('')}
+function addAl(){if(!addDays.length)return;S.alarms.push({id:S.id++,time:$('#at').value||'05:00',k:$('#ak').value,days:[...addDays].sort(),on:true});save();draw();
+ if('Notification'in window&&Notification.permission=='default')Notification.requestPermission()}
+let fired='';
+function beep(){try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.connect(c.destination);o.frequency.value=660;o.start();setTimeout(()=>{o.stop();c.close()},900)}catch(e){}try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}
+function fire(k){
+ const m=MSG[Math.floor(Math.random()*MSG.length)];beep();
+ try{if(Notification.permission=='granted')new Notification(k=='حفظ'?'وقت الحفظ 📖':'وقت المراجعة 🔁',{body:m})}catch(e){}
+ $('#ban').innerHTML=`<div class="c" style="border-color:var(--pri)"><b>${k=='حفظ'?'وقت الحفظ 📖':'وقت المراجعة 🔁'}</b><div class="m">${m}</div>
+ <div class="row" style="margin-top:8px"><button onclick="bdone('${k}')">تم ✅</button><button class="g" onclick="snooze('${k}')">غفوة 15 دقيقة ⏰</button></div></div>`}
+function bdone(k){const t=due().find(x=>x.type==k);$('#ban').innerHTML='';if(t)done(t.id,'mastered')}
+function snooze(k){const n=new Date(Date.now()+9e5);S.alarms.push({id:S.id++,time:hm(n),k,days:[n.getDay()],on:true,once:true});save();$('#ban').innerHTML=''}
+setInterval(()=>{const n=new Date(),key=ymd(n)+hm(n);if(key==fired)return;
+ const a=S.alarms.find(a=>a.on&&a.time==hm(n)&&a.days.includes(n.getDay()));
+ if(a){fired=key;fire(a.k);if(a.once){S.alarms=S.alarms.filter(x=>x!==a);save()}}},15000);
+/* ---------- الأرشيف ---------- */
+let af='all';
+const BADGE={mastered:['🟢','ناجحة'],light:['🟡','تحتاج مراجعة'],hard:['🔴','متعثرة']};
+const dt=v=>{if(!v)return'';if(v.length==10)return v;const d=new Date(v);return D[d.getDay()]+' • '+hij(d)+' • '+ymd(d)+' '+hm(d)};
+const stOf=t=>{const l=[...S.logs].reverse().find(x=>x.t==t.id);return l?l.r:null};
+function archT(id,v){const t=S.tasks.find(x=>x.id==id);t.arch=v;if(v)t.doneAt=new Date().toISOString();else delete t.doneAt;save();draw()}
+function archive(){
+ const fl=[['all','الكل'],['arch','🏆 مؤرشفة'],['mastered','🟢 ناجحة'],['light','🟡 تحتاج مراجعة'],['hard','🔴 متعثرة']];
+ const it=S.tasks.filter(t=>t.arch||stOf(t)).filter(t=>af=='all'||(af=='arch'?t.arch:stOf(t)==af));
+ return `<div style="padding:0 12px">${fl.map(([k,n])=>`<span class="chip ${af==k?'on':''}" onclick="af='${k}';draw()">${n}</span>`).join('')}</div>`+
+ (it.map(t=>{const b=BADGE[stOf(t)]||['⚪','—'],n=S.logs.filter(l=>l.t==t.id).length;
+  return `<div class="c"><div class="row sp"><b>${t.arch?'🏆':b[0]} سورة ${esc(t.s)}</b><span class="m">${t.a}–${t.b}</span></div>
+  <div class="m">آخر تقييم: ${b[1]} • ${n} محاولة</div>${t.arch&&t.doneAt?`<div class="m" style="margin-top:4px">🏆 أُنهيت: <b>${dt(t.doneAt)}</b></div>`:''}
+  <div class="row" style="margin-top:8px">${t.arch?`<button class="g" onclick="archT(${t.id},false)">↩ استعادة</button>`:`<button class="g" onclick="archT(${t.id},true)">📦 أرشفة</button>`}<button class="g" onclick="ask('حذف المهمة نهائياً؟',()=>delT(${t.id}))">🗑</button></div></div>`}).join('')||'<div class="c m">لا مهام في هذا التصنيف بعد.</div>');
+}
+/* ---------- الإحصائيات ---------- */
+function taskGroups(){const g={};S.logs.forEach(l=>{const t=S.tasks.find(x=>x.id==l.t)||{};g[l.t]={id:l.t,r:l.r,s:l.s||t.s||'مهمة محذوفة',a:l.a??t.a,b:l.b??t.b,arch:!!t.arch}});return Object.values(g)}
+function taskStats(){
+ const G=taskGroups(),c={mastered:0,light:0,hard:0};G.forEach(x=>c[x.r]++);
+ const a={mastered:0,light:0,hard:0};S.logs.forEach(l=>a[l.r]++);
+ const tot=Math.max(1,c.mastered+c.light+c.hard),arch=S.tasks.filter(t=>t.arch).length;
+ return `<div class="c"><b>حالة المهام (حسب آخر تقييم)</b>`+
+ ['mastered','light','hard'].map(k=>`<div style="margin-top:10px"><div class="row sp"><span>${BADGE[k][0]} ${BADGE[k][1]}</span><b>${c[k]}</b></div><div style="height:8px;background:var(--bd);border-radius:6px"><div style="height:8px;width:${c[k]/tot*100}%;background:${k=='hard'?'var(--bad)':k=='light'?'#f9a825':'var(--pri)'};border-radius:6px"></div></div><div class="m">إجمالي المحاولات: ${a[k]}</div></div>`).join('')+
+ `<div style="margin-top:12px">🏆 مهام مؤرشفة: <b>${arch}</b></div>`+
+ `<div style="margin-top:14px;border-top:1px solid var(--bd)">`+(G.map(x=>`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span>${x.arch?'🏆':BADGE[x.r][0]} ${x.s.startsWith('مهمة')?x.s:'سورة '+esc(x.s)} ${x.a?`<span class="m">(${x.a}–${x.b})</span>`:''}</span><button class="g" style="padding:6px 10px;font-size:13px" onclick="delStat(${x.id})">🗑 حذف من الإحصائيات</button></div>`).join('')||'<div class="m" style="padding-top:8px">لا مهام في الإحصائيات بعد</div>')+`</div></div>`}
+let pf=null;
+function ask(m,f,l){pf=f;$('#sh').innerHTML=`<div class="sh"><div><b>${esc(m)}</b><button class="r" onclick="cf(1)">${l||'نعم، احذف'}</button><button class="g" onclick="cf(0)">إلغاء</button></div></div>`}
+function cf(y){const f=pf;pf=null;$('#sh').innerHTML='';if(y&&f)f()}
+function delStat(id){const l=S.logs.find(x=>x.t==id),t=S.tasks.find(x=>x.id==id),n=(t||l||{}).s||'هذه المهمة';ask('حذف '+n+' من الإحصائيات؟ (تُحذف سجلاتها فقط)',()=>{S.logs=S.logs.filter(x=>x.t!=id);save();draw()})}
+function stats(){
+ const ds=new Set(S.logs.map(l=>l.date));let st=0,d=new Date();if(!ds.has(ymd(d)))d=new Date(d-864e5);
+ while(ds.has(ymd(d))){st++;d=new Date(d-864e5)}
+ const wk=[...Array(7)].map((_,i)=>{const x=new Date(Date.now()-(6-i)*864e5);return[D[x.getDay()].slice(0,3),S.logs.filter(l=>l.date==ymd(x)).length]});
+ const mx=Math.max(1,...wk.map(w=>w[1])),hr={};S.logs.filter(l=>l.r=='mastered').forEach(l=>{const h=l.time.slice(0,2);hr[h]=(hr[h]||0)+1});
+ const b=Object.entries(hr).sort((a,b)=>b[1]-a[1])[0];
+ return `<div class="row" style="padding:0 12px"><div class="c" style="flex:1;margin:10px 0">🔥 الاستمرارية<br><b style="font-size:22px">${st} يوم</b></div><div class="c" style="flex:1;margin:10px 0">✅ الإنجازات<br><b style="font-size:22px">${S.logs.length}</b></div></div>
+ <div class="c">⏰ أفضل وقت تركيز: <b>${b?'الساعة '+b[0]+':00':'لا بيانات بعد'}</b></div>
+ ${taskStats()}
+ <div class="c"><b>آخر 7 أيام</b><div class="bar" style="margin-top:10px">${wk.map(w=>`<div style="height:${w[1]/mx*100}%">${w[1]}</div>`).join('')}</div><div class="row m" style="margin-top:4px">${wk.map(w=>`<span style="flex:1;text-align:center">${w[0]}</span>`).join('')}</div></div>
+ <div class="c"><b>آخر العمليات</b>${S.logs.slice(-10).reverse().map(l=>`<div style="padding:8px 0;border-top:1px solid var(--bd)">${{mastered:'🟢',light:'🟡',hard:'🔴'}[l.r]} ${l.day} • ${l.h}<div class="m">${l.date} ${l.time} (${l.dur} د)</div></div>`).join('')||'<div class="m">لا سجلات بعد</div>'}</div>`}
+/* ---------- الحساب والمزامنة السحابية ---------- */
+let fa=null,fs=null,fu=null,fbOK=false,sm='',pt=null;
+const EMPTY=()=>({tasks:[],logs:[],alarms:[],mist:[],skipFri:true,id:1});
+function sync(m){sm=m;const e=$('#sm');if(e)e.textContent=m}
+function fbInit(){
+ if(!FB.apiKey||!window.firebase)return;
+ try{firebase.initializeApp(FB);fa=firebase.auth();fs=firebase.firestore();fbOK=true;
+  fa.onAuthStateChanged(u=>{fu=u;if(u)pull();if($('#accb'))acc()})}catch(e){}}
+async function pushNow(){if(!fu)return;try{await fs.collection('users').doc(fu.uid).set({d:JSON.stringify(S),u:S._u||Date.now()});sync('تمت المزامنة ✅')}catch(e){sync('تعذّرت المزامنة ⚠️')}}
+function push(){if(!fu)return;clearTimeout(pt);pt=setTimeout(pushNow,1500)}
+async function pull(){
+ try{const r=await fs.collection('users').doc(fu.uid).get();
+  if(r.exists){const c=r.data();
+   if(S._uid!==fu.uid||(c.u||0)>(S._u||0)){S=Object.assign(EMPTY(),JSON.parse(c.d));S._uid=fu.uid;
+    try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}draw();sync('تم تحميل بياناتك من السحابة ☁️');return}}
+  S._uid=fu.uid;save();sync('تمت المزامنة ✅')}catch(e){sync('تعذّر الاتصال ⚠️')}}
+const ERR={'auth/invalid-email':'البريد غير صحيح','auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/user-not-found':'لا يوجد حساب بهذا البريد','auth/wrong-password':'كلمة المرور غير صحيحة','auth/email-already-in-use':'هذا البريد مسجّل مسبقاً، سجّل الدخول','auth/weak-password':'كلمة المرور ضعيفة (6 أحرف على الأقل)','auth/network-request-failed':'تحقق من الإنترنت','auth/missing-password':'اكتب كلمة المرور'};
+const er=e=>sync(ERR[e.code]||'حدث خطأ: '+e.code);
+const aIn=()=>fa.signInWithEmailAndPassword($('#ae').value.trim(),$('#ap').value).catch(er);
+const aUp=()=>fa.createUserWithEmailAndPassword($('#ae').value.trim(),$('#ap').value).catch(er);
+const aRs=()=>fa.sendPasswordResetEmail($('#ae').value.trim()).then(()=>sync('أرسلنا رابط استعادة كلمة المرور إلى بريدك')).catch(er);
+async function out(){
+ try{await fs.collection('users').doc(fu.uid).set({d:JSON.stringify(S),u:S._u||Date.now()})}catch(e){acc();sync('تعذّر رفع بياناتك، لم يتم الخروج ⚠️');return}
+ await fa.signOut();S=EMPTY();try{localStorage.removeItem('qmrm')}catch(e){}$('#sh').innerHTML='';draw()}
+function acc(){
+ let b;
+ if(!fbOK)b='<b>الحساب والمزامنة</b><p class="m">المزامنة السحابية غير مفعّلة في هذه النسخة. تعمل فقط على نسخة GitHub بعد إدخال إعدادات Firebase.</p>';
+ else if(!fu)b='<b>تسجيل الدخول</b><input id="ae" type="email" placeholder="البريد الإلكتروني" dir="ltr"><input id="ap" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" dir="ltr"><button onclick="aIn()">تسجيل الدخول</button><button class="g" onclick="aUp()">إنشاء حساب جديد</button><button class="g" onclick="aRs()">نسيت كلمة المرور</button>';
+ else b=`<b>☁️ مرتبط بحسابك</b><p class="m" dir="ltr" style="text-align:right">${esc(fu.email)}</p><button onclick="pushNow()">مزامنة الآن</button><button class="r" onclick="ask('تسجيل الخروج يمسح البيانات من هذا الهاتف وتبقى محفوظة في حسابك. متابعة؟',out,'نعم، اخرج')">تسجيل الخروج</button>`;
+ $('#sh').innerHTML=`<div class="sh" onclick="if(event.target==this)$('#sh').innerHTML=''"><div id="accb">${b}<div id="sm" class="m" style="min-height:20px">${esc(sm)}</div><button class="g" onclick="$('#sh').innerHTML=''">إغلاق</button></div></div>`}
+draw();fbInit();
+</script></body></html>
