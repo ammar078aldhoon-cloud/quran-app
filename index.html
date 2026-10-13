@@ -2,16 +2,16 @@
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مُثبِّت القرآن</title>
-<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1b5e20"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a237e"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri&family=Amiri+Quran&family=Noto+Naskh+Arabic&family=Scheherazade+New&family=Lateef&family=Noto+Kufi+Arabic&family=Reem+Kufi&family=Kufam&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa&family=Noto+Nastaliq+Urdu&family=Cairo&family=Tajawal&family=Almarai&family=Changa&family=El+Messiri&family=Markazi+Text&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic&family=Harmattan&family=Mada&family=Lalezar&family=Rakkas&family=Jomhuria&family=Katibeh&family=Mirza&family=Lemonada&display=swap">
 
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#f6f8f4;--card:#fff;--tx:#1c2a1f;--pri:#1b5e20;--mut:#6b7a6e;--bd:#dde5da;--bad:#c62828}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#f3f4fb;--card:#fff;--tx:#1a1f4d;--pri:#1a237e;--gold:#c9a24a;--mut:#6b7090;--bd:#dfe2f0;--bad:#c62828}
 :root:not([data-theme=light]){}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101712;--card:#1a241c;--tx:#e8efe9;--pri:#66bb6a;--mut:#9aab9d;--bd:#2b392e}}
-:root[data-theme=dark]{--bg:#101712;--card:#1a241c;--tx:#e8efe9;--pri:#66bb6a;--mut:#9aab9d;--bd:#2b392e}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d1030;--card:#171b45;--tx:#e8eaf6;--pri:#7986cb;--mut:#9ea3c8;--bd:#2a2f66}}
+:root[data-theme=dark]{--bg:#0d1030;--card:#171b45;--tx:#e8eaf6;--pri:#7986cb;--mut:#9ea3c8;--bd:#2a2f66}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,"Segoe UI",Tahoma,sans-serif;padding-bottom:80px}
 h1{font-size:20px;margin:0;padding:14px 16px}
@@ -112,6 +112,20 @@ html[dir=ltr] #dtb{left:auto!important;right:10px;text-align:right!important}
 .awl{display:flex;justify-content:space-between;margin-top:18px;font-size:15px}.awl a,.awfoot a{color:#1a237e;cursor:pointer;text-decoration:none;font-weight:600}
 .awfoot{margin-top:auto;padding-top:26px;display:flex;flex-direction:column;align-items:center;gap:14px}.awfoot a{color:#1a237e;opacity:.85}
 @keyframes awsp{to{transform:rotate(360deg)}}.awspin{width:30px;height:30px;border:3px solid #fff5;border-top-color:#fff;border-radius:50%;animation:awsp .9s linear infinite;margin-top:24px}
+html{background:#1a237e;scroll-behavior:smooth}*{-webkit-tap-highlight-color:transparent}
+button,a,.prow,.chip,nav button{touch-action:manipulation}
+button{transition:transform .12s,opacity .2s,background .2s}button:active{transform:scale(.97)}button:disabled{opacity:.55;pointer-events:none}
+header{background:linear-gradient(135deg,#1a237e,#303f9f);color:#fff;padding:12px 10px!important;border-radius:0 0 22px 22px;box-shadow:0 6px 18px #1a237e44;margin-bottom:6px}
+header button,header span,header .ic{color:#fff!important}
+#dtb,#dtb b{color:#fff!important;opacity:.92}
+.c,.pcard{border-color:transparent;box-shadow:0 2px 12px color-mix(in srgb,var(--pri) 12%,transparent)}.c{border-radius:20px}.pcard{border-radius:22px}
+main>*,.pg{animation:fi .28s ease both}@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+nav{border-top:0;border-radius:22px 22px 0 0;box-shadow:0 -6px 20px #1a237e24}
+nav button.on{color:var(--pri);font-weight:700;position:relative}nav button.on::after{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 4px 4px;background:var(--gold)}
+button.g{border-color:color-mix(in srgb,var(--pri) 45%,transparent)}
+input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--pri) 55%,transparent);border-color:transparent}
+.awm.ok{color:#2e7d32}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media print{@page{size:A4;margin:12mm}#pv,#pv *{-webkit-print-color-adjust:exact;print-color-adjust:exact}body>*:not(#pv){display:none!important}#pv{display:block!important}body{background:#fff!important;padding:0!important}:root{padding:0!important}}
 </style></head><body><div id="aw" class="aw" style="display:none"></div>
 <header style="display:flex;align-items:center;gap:6px;padding:10px 8px 4px"><button onclick="menu()" aria-label="القائمة" style="background:none;color:var(--tx);padding:8px"><svg width="30" height="30" viewBox="0 0 28 28"><path d="M4 8h20M4 14h20M4 20h20" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/></svg></button><span style="font-size:20px;font-weight:700">📖 مُثبِّت القرآن</span></header>
@@ -135,7 +149,7 @@ const hij=d=>d.toLocaleDateString(S.lang=='en'?'en-u-ca-islamic-umalqura':'ar-SA
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let tab='home',qz=null,rev=false,qn=0,qok=0,addDays=[0,1,2,3,4,6];
 const tabs=[['home','📖','اليوم'],['jz','📅','الجداول'],['td','✅','المهمات'],['ar','🗂','الأرشيف'],['st','📊','إحصائيات']];
-function go(t){if(tab=='pv'&&t!='pv')pvOk=false;if(tab=='ar'&&t!='ar'){pvOk=false;arPvOpen=false}tab=t;draw()}
+function go(t){if(t=='se'&&fbOK&&!fu){tab='home';draw();awMode='in';awShow();return}if(tab=='pv'&&t!='pv')pvOk=false;if(tab=='ar'&&t!='ar'){pvOk=false;arPvOpen=false}tab=t;draw()}
 function draw(){
  $('#nav').innerHTML=tabs.map(([k,i,n])=>`<button class="${k==tab?'on':''}" onclick="go('${k}')">${i}<br>${n}</button>`).join('');
  $('#v').innerHTML={home:home,jz:jz,al:alarms,st:stats,ar:archive,nb:notebook,se:settings,ap:appearance,re:reminders,ct:conts,bk:backup,pr:prayer,td:todos,pv:privPage}[tab]();
@@ -396,9 +410,9 @@ function jz(){
  <div class="m" style="margin:0 16px">اضغط + عند كل جلسة و− للتراجع. وزر «▾ الجلسات» تحت كل جزء يعرض تواريخ كل جلساته. الأجزاء بالأحمر لم تُراجع منذ أكثر من 30 يوماً.</div>`}
 window.addEventListener('unhandledrejection',e=>{try{sync('⚠️ '+((e.reason&&(e.reason.code||e.reason.message))||e.reason))}catch(x){}});
 /* ---------- الحساب والمزامنة السحابية ---------- */
-let fa=null,fs=null,fu=null,fbOK=false,sm='',pt=null;
+let fa=null,fs=null,fu=null,fbOK=false,sm='',pt=null,busy=0;
 const EMPTY=()=>({tasks:[],logs:[],alarms:[],mist:[],skipFri:true,id:1});
-function sync(m){sm=m;const e=$('#sm');if(e)e.textContent=m;const w=document.getElementById('awm');if(w)w.textContent=m}
+function sync(m){sm=m;const e=$('#sm');if(e)e.textContent=m;const w=document.getElementById('awm');if(w){w.textContent=m;w.classList.toggle('ok',/^✅/.test(m))}}
 function fbInit(){
  if(!FB.apiKey||!window.firebase)return;
     if(!awG()){awSplash();setTimeout(()=>{const a=document.getElementById('aw');if(a&&a.querySelector&&a.querySelector('.awspin'))awHide()},6000)}
@@ -421,12 +435,16 @@ async function claimUn(raw){const u=String(raw||'').trim().toLowerCase(),cu=(fa&
  const old=prof().user;if(old&&old!==u){try{await fs.collection('usernames').doc(old).delete()}catch(e){}}prof().user=u;save()}
 async function resolveEmail(id){id=id.trim();if(id.includes('@'))return id;const d=await unGet(id.toLowerCase());if(!d)throw{code:'username-notfound'};return d.email}
 async function unSave(){try{await claimUn($('#unin').value);toast('تم حفظ اسم المستخدم');draw()}catch(e){er(e)}}
-async function doIn(id,p){if(!id||!p){sync('⚠️ اكتب البريد أو اسم المستخدم وكلمة المرور');return}sync('⏳ جارٍ تسجيل الدخول...');try{const m=await resolveEmail(id);await fa.signInWithEmailAndPassword(m,p);sync('✅ تم تسجيل الدخول')}catch(e){er(e)}}
+async function doIn(id,p){if(!id||!p){sync('⚠️ اكتب البريد أو اسم المستخدم وكلمة المرور');return}if(busy)return;busy=1;sync('⏳ جارٍ تسجيل الدخول...');try{const m=await resolveEmail(id);await fa.signInWithEmailAndPassword(m,p);sync('✅ تم تسجيل الدخول')}catch(e){er(e)}busy=0}
 async function aIn(){return doIn($('#ae').value.trim(),$('#ap').value)}
 async function doUp(m,u,p){if(!m.includes('@')||!p){sync('⚠️ لإنشاء حساب اكتب بريدك الإلكتروني وكلمة المرور');return}if(!unOk(u)){er({code:'bad-username'});return}sync('⏳ جارٍ إنشاء الحساب...');
  try{if(await unGet(u))throw{code:'username-taken'};await fa.createUserWithEmailAndPassword(m,p);await claimUn(u);sync('✅ تم إنشاء الحساب باسم المستخدم @'+u)}catch(e){er(e)}}
 async function aUp(){return doUp($('#ae').value.trim(),$('#au').value.trim().toLowerCase(),$('#ap').value)}
-async function doRs(id){if(!id){sync('⚠️ اكتب بريدك أو اسم المستخدم');return}try{const m=await resolveEmail(id);await fa.sendPasswordResetEmail(m);sync('✅ أرسلنا رسالة إعادة تعيين كلمة المرور إلى بريدك، افتح الرابط الذي فيها')}catch(e){er(e)}}
+async function doRs(id){if(!id){sync('⚠️ اكتب بريدك أو اسم المستخدم');return}if(busy)return;busy=1;sync('⏳ جارٍ إرسال الرابط...');
+ try{const m=await resolveEmail(id);try{fa.languageCode='ar'}catch(e){}
+  try{const ms=await fa.fetchSignInMethodsForEmail(m);if(ms.length&&!ms.includes('password')){sync('ℹ️ هذا البريد مسجّل بواسطة Google فقط: ادخل بزر Google ثم أنشئ كلمة مرور من «إعدادات الحساب».');busy=0;return}}catch(e){}
+  await fa.sendPasswordResetEmail(m,{url:location.origin+location.pathname,handleCodeInApp:false});
+  sync('✅ أرسلنا الرابط إلى '+m+' — افحص صندوق الوارد وكذلك «الرسائل غير المرغوبة (Spam)»، وقد يتأخر دقائق.')}catch(e){er(e)}busy=0}
 async function aRs(){return doRs($('#ae').value.trim())}
 async function out(){
  try{await fs.collection('users').doc(fu.uid).set({d:JSON.stringify(S),u:S._u||Date.now()})}catch(e){tab='se';draw();sync('تعذّر رفع بياناتك، لم يتم الخروج ⚠️');return}
@@ -452,7 +470,7 @@ function colApply(){const hx=hsv2hex(cH,cS,cV);$('#sh').innerHTML='';
  else if(cT=='pg'){nbCP().pc=hx;nbMark('pc');save();draw()}
  else{nbK().c=hx;save();draw();nbEditCover(nbEd)}}
 /* ---------- المظهر واللغة ---------- */
-const ACC=[['#1b5e20','#66bb6a'],['#1565c0','#64b5f6'],['#6a1b9a','#ce93d8'],['#e65100','#ffb74d'],['#00695c','#4db6ac'],['#ad1457','#f48fb1'],['#4e342e','#bcaaa4']];
+const ACC=[['#1a237e','#7986cb'],['#1565c0','#64b5f6'],['#6a1b9a','#ce93d8'],['#e65100','#ffb74d'],['#00695c','#4db6ac'],['#ad1457','#f48fb1'],['#4e342e','#bcaaa4']];
 const th=()=>S.theme||(S.theme={mode:'auto',acc:0});
 function applyTheme(){const t=th(),r=document.documentElement,dm=typeof matchMedia!='undefined'&&matchMedia('(prefers-color-scheme: dark)').matches,dark=t.mode=='dark'||(t.mode=='auto'&&dm);
  if(t.mode=='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t.mode);const bs=(t.acc<0&&t.custom)?[t.custom,mixW(t.custom,.4)]:(ACC[t.acc||0]||ACC[0]);r.style.setProperty('--pri',bs[dark?1:0])}
@@ -752,7 +770,6 @@ function settings(){const P=prof(),E=pe.on,u=fu;
  ${row('users','الجنس',E?`<select onchange="prof().gender=this.value;save()" style="margin:0;padding:6px 8px"><option value="">—</option><option ${P.gender=='ذكر'?'selected':''}>ذكر</option><option ${P.gender=='أنثى'?'selected':''}>أنثى</option></select>`:(P.gender||'—'))}
  ${row('globe','بلد الإقامة',E?`<button class="g" onclick="ctrySheet()" style="padding:6px 10px">${cName(P.country)} ▾</button>`:cName(P.country))}
  ${row('calendar','عضو منذ',esc(S.since||'—'))}</div>
- ${!u?`<div class="ph">تسجيل الدخول</div><div class="pcard" style="padding:14px 18px">${acct()}</div>`:''}
  <div class="ph">إعدادات الحساب</div><div class="pcard">
  ${u?act('lock',((u&&u.providerData||[]).some(x=>x.providerId==='password'))?'تغيير كلمة المرور':'إنشاء كلمة مرور','chPass()')+act('cloud','مزامنة البيانات الآن','pushNow()')+act('logout','تسجيل الخروج',"ask('تسجيل الخروج يمسح البيانات من هذا الهاتف وتبقى محفوظة في حسابك. متابعة؟',out,'نعم، اخرج')"):''}
  ${u?act('userx','حذف الحساب نهائياً',"typedAsk('حذف الحساب نهائياً','سيُحذف حسابك واسم المستخدم وكل بياناتك السحابية نهائياً ولا يمكن التراجع.','delAcc')",1):act('trash','حذف بياناتي من الجهاز',"typedAsk('حذف بيانات الجهاز','ستُحذف كل بياناتك المحفوظة في هذا الجهاز ولا يمكن التراجع.','wipe')",1)}</div>
@@ -799,8 +816,22 @@ async function awIn(){await doIn(awGv('awe').trim(),awGv('awp'))}
 async function awUp(){if(awGv('awp')!==awGv('awp2')){sync('⚠️ كلمتا المرور غير متطابقتين');return}await doUp(awGv('awe').trim(),awGv('awu').trim().toLowerCase(),awGv('awp'))}
 async function awRs(){await doRs(awGv('awe').trim())}
 async function awGoogle(){await aGoogle()}
-function awGuest(){try{localStorage.setItem('qmrm_guest','1')}catch(e){}awHide()}
-async function aGoogle(){sync('⏳ جارٍ فتح حسابات Google...');try{const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});await fa.signInWithPopup(p);sync('✅ تم تسجيل الدخول')}catch(e){er(e)}}
+function awGuest(){try{localStorage.setItem('qmrm_guest','1')}catch(e){}awHide();if(tab=='se')go('home')}
+/* الصق هنا Web client ID من: Firebase > Authentication > Sign-in method > Google > Web SDK configuration */
+const GCID='';
+let gsiP=null;
+function gsiLoad(){return gsiP||(gsiP=new Promise((ok,no)=>{if(window.google&&google.accounts&&google.accounts.id)return ok();const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=ok;s.onerror=()=>no(new Error('gsi'));document.head.appendChild(s)}))}
+async function gPopup(){const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});await fa.signInWithPopup(p)}
+async function aGoogle(){if(busy)return;busy=1;sync('⏳ جارٍ فتح حسابات Google...');
+ const fin=()=>{busy=0};
+ try{
+  if(!GCID){await gPopup();sync('✅ تم تسجيل الدخول');return fin()}
+  await gsiLoad();
+  google.accounts.id.initialize({client_id:GCID,use_fedcm_for_prompt:true,cancel_on_tap_outside:false,auto_select:false,itp_support:true,
+   callback:async r=>{try{await fa.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(r.credential));sync('✅ تم تسجيل الدخول')}catch(e){er(e)}fin()}});
+  google.accounts.id.prompt(async n=>{try{if(n.isNotDisplayed()||n.isSkippedMoment()){if(busy){try{await gPopup();sync('✅ تم تسجيل الدخول')}catch(e){er(e)}fin()}}}catch(e){fin()}});
+  setTimeout(fin,20000)
+ }catch(e){try{await gPopup();sync('✅ تم تسجيل الدخول')}catch(e2){er(e2)}fin()}}
 /* ---------- دفتر الملاحظات ---------- */
 const NB_ST=[['lined','📏 مسطّر'],['grid','▦ مربعات'],['dot','⠿ منقّط'],['plain','📄 سادة'],['school','🎓 مدرسي'],['en','ABC']];
 const NB_FF=[['system-ui,Tahoma,sans-serif','عادي'],['Georgia,serif','كلاسيكي'],['Courier New,monospace','آلة كاتبة'],['Comic Sans MS,cursive','بخط اليد'],...[['Amiri','نسخ — أميري'],['Amiri Quran','نسخ — أميري قرآن'],['Noto Naskh Arabic','نسخ — نوتو'],['Scheherazade New','نسخ — شهرزاد'],['Lateef','نسخ — لطيف'],['Noto Kufi Arabic','كوفي — نوتو'],['Reem Kufi','كوفي — ريم'],['Kufam','كوفي — كوفام'],['Aref Ruqaa','رقعة — عارف'],['Noto Nastaliq Urdu','نستعليق'],['Cairo','القاهرة'],['Tajawal','تجوّل'],['Almarai','المرعي'],['Changa','تشانغا'],['El Messiri','المسيري'],['Markazi Text','مركزي'],['IBM Plex Sans Arabic','IBM بلكس'],['Harmattan','هرمتان'],['Mada','مدى'],['Lalezar','لالزار (عناوين)'],['Rakkas','رقاص (زخرفي)'],['Jomhuria','جمهورية (زخرفي)'],['Katibeh','كاتبة (خط يد)'],['Mirza','ميرزا'],['Lemonada','ليمونادا']].map(([f,l])=>["'"+f+"',system-ui,serif",l])];
