@@ -31,10 +31,6 @@ nav button{flex:1;background:none;color:var(--mut);border-radius:0;font-size:13p
 .dr{align-items:stretch!important}
 .cov{position:relative;border-radius:6px 14px 14px 6px;padding:14px;padding-inline-start:30px;min-height:150px;color:#fff;background:linear-gradient(135deg,var(--cc),color-mix(in srgb,var(--cc) 65%,#000));box-shadow:0 3px 8px #0005;cursor:pointer;overflow:hidden}
 .cov::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:20px}
-.cov.classic::before{background:#0004;border-inline-end:2px solid #0005}
-.cov.classic::after{content:"";position:absolute;top:0;bottom:0;inset-inline-end:16px;width:8px;background:#0003}
-.cov.spiral::before{background:radial-gradient(circle at 50% 50%,#f2f2f2 3.5px,#0007 4.2px,transparent 5px) 0 0/20px 22px repeat-y}
-.cov.simple{border-radius:14px;padding-inline-start:14px}
 .cov .lb{background:#fffe;color:#1c2a1f;border-radius:5px;padding:8px;text-align:center;margin-top:8px}
 .cov .lk{position:absolute;top:6px;inset-inline-end:8px;font-size:18px}
 .cov.newb{background:transparent;color:var(--mut);border:2px dashed var(--bd);box-shadow:none;display:flex;flex-direction:column;justify-content:center;align-items:center}
@@ -76,11 +72,6 @@ html[dir=ltr] .nx .ic{transform:scaleX(-1)}.fl .ic{transform:scaleX(-1)}html[dir
 .cvs{position:absolute;inset:0;width:100%;height:100%}details.c summary{cursor:pointer;list-style:none}
 .rainbow{width:30px;height:30px;border-radius:50%;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border:3px solid var(--bd);display:inline-block;flex:none}
 input.cr{-webkit-appearance:none;appearance:none;height:28px;border-radius:6px;margin:6px 0;padding:0;border:1px solid var(--bd)}input.cr::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:36px;border-radius:6px;background:#fff;border:2px solid #555}input.cr::-moz-range-thumb{width:22px;height:36px;border-radius:6px;background:#fff;border:2px solid #555}
-.cov.pad{background:#fff;color:#555;border-radius:18px;padding-inline-start:38px;padding-inline-end:14px;box-shadow:0 3px 8px #0004}
-.cov.pad::after{display:none}
-.cov.pad::before{inset-block:12px;inset-inline-start:6px;width:26px;background:repeating-linear-gradient(180deg,#3d3d3d 0 3px,transparent 3px 12px),radial-gradient(circle,#bdbdbd 2.4px,transparent 3px) 17px 1px/26px 12px repeat-y}
-.cov.pad .lb{background:var(--cc);color:#fff;border-radius:0;margin-block-start:42px;margin-inline:-38px -14px;padding-inline:38px 14px;text-align:start}
-.cov.pad.e{padding-inline-start:14px;padding-inline-end:38px}.cov.pad.e::before{inset-inline-start:auto;inset-inline-end:6px}.cov.pad.e .lb{margin-inline:-14px -38px;padding-inline:14px 38px}
 input.sz{padding:0;margin:0}
 .rt{position:relative;outline:none;overflow:hidden;white-space:pre-wrap;word-wrap:break-word;padding:0 12px;background-attachment:local;caret-color:var(--pri);border-radius:6px;-webkit-user-select:text;user-select:text}
 .rt[data-empty="1"]::before{content:attr(data-ph);position:absolute;color:var(--mut);pointer-events:none}
@@ -126,7 +117,59 @@ button.g{border-color:color-mix(in srgb,var(--pri) 45%,transparent)}
 input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--pri) 55%,transparent);border-color:transparent}
 .awm.ok{color:#2e7d32}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.cov:active{transform:scale(.97) rotate(-.4deg)}
+.cov .gl{position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 40%,#ffffff22 48%,transparent 56%)}
+.cov .stt{position:absolute;inset:8px 8px 8px 8px;border:1.5px dashed #ffffff55;border-radius:5px 12px 12px 5px;pointer-events:none}
+.cov .cn{align-self:center;margin-top:12px!important;padding:3px 12px;border-radius:20px;background:#0000004d;font-size:12px;letter-spacing:.2px;position:relative;z-index:1;backdrop-filter:blur(2px)}
+.cov.newb{background:color-mix(in srgb,var(--pri) 6%,transparent);border:2px dashed color-mix(in srgb,var(--pri) 40%,transparent);color:var(--pri);box-shadow:none;border-radius:18px}
 @media print{@page{size:A4;margin:12mm}#pv,#pv *{-webkit-print-color-adjust:exact;print-color-adjust:exact}body>*:not(#pv){display:none!important}#pv{display:block!important}body{background:#fff!important;padding:0!important}:root{padding:0!important}}
+
+/* ===== قوالب الدفتر الجديدة: حواف ناعمة بلا سلك ===== */
+.cov{position:relative;min-height:200px;border-radius:24px;padding:16px;display:flex;flex-direction:column;justify-content:center;color:#fff;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;
+--c1:color-mix(in srgb,var(--cc) 82%,#fff);--c2:color-mix(in srgb,var(--cc) 58%,#000);
+background:linear-gradient(150deg,var(--c1),var(--cc) 48%,var(--c2));
+box-shadow:0 12px 26px #0003,0 2px 6px #0002,inset 0 1px 0 #ffffff66,inset 0 -3px 8px #0003}
+.cov:active{transform:scale(.97)}
+.cov::before,.cov::after{content:none}
+.cov .gl{position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(115deg,transparent 38%,#ffffff26 48%,transparent 58%)}
+.cov .stt,.cov .orn{position:absolute;pointer-events:none;display:none}
+.cov .lb{position:relative;z-index:1;background:linear-gradient(160deg,#fffdf5,#f6ecd0);color:#33260a;border-radius:16px;padding:13px 10px;margin-top:20px;text-align:center;box-shadow:0 4px 12px #0003,inset 0 0 0 1px #ffffffaa;text-shadow:none}
+.cov .cn{align-self:center;margin-top:12px!important;padding:3px 13px;border-radius:20px;background:#0000004d;font-size:12px;position:relative;z-index:1;backdrop-filter:blur(2px)}
+.cov .lk{position:absolute;top:10px;inset-inline-end:12px;font-size:18px;z-index:2}
+.cov.newb{background:color-mix(in srgb,var(--pri) 6%,transparent);border:2px dashed color-mix(in srgb,var(--pri) 40%,transparent);color:var(--pri);box-shadow:none;border-radius:24px;align-items:center}
+.cov.newb .gl,.cov.newb .orn,.cov.newb .stt{display:none}
+/* مجلّد: كعب ناعم */
+.cov.classic::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:26px;background:linear-gradient(90deg,#0005,#0001 70%,transparent);border-inline-end:1px solid #ffffff22}
+.cov.classic{padding-inline-start:36px}
+/* جلد: غرزة + ملمس */
+.cov.leather{background:radial-gradient(120% 90% at 30% 0,#ffffff2a,transparent 55%),repeating-radial-gradient(circle at 20% 30%,#0000000d 0 1px,transparent 1px 3px),linear-gradient(160deg,var(--cc),var(--c2))}
+.cov.leather .stt{display:block;inset:9px;border:2px dashed #ffe8b3aa;border-radius:17px}
+/* عصري: دوائر مسطحة */
+.cov.modern{background:radial-gradient(circle at 88% 12%,#ffffff38 0 24%,transparent 25%),radial-gradient(circle at 8% 100%,#00000030 0 34%,transparent 35%),var(--cc)}
+.cov.modern .lb{background:#fff;color:#1a1f4d;border-radius:18px}
+/* متدرج */
+.cov.gradient{background:linear-gradient(135deg,color-mix(in srgb,var(--cc) 55%,#fff),var(--cc) 40%,color-mix(in srgb,var(--cc) 50%,#7c4dff))}
+.cov.gradient .lb{background:#ffffffd9;backdrop-filter:blur(6px)}
+/* زخرفة إسلامية */
+.cov.islamic{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M28 4 52 28 28 52 4 28Z' fill='none' stroke='white' stroke-opacity='.28' stroke-width='1.4'/%3E%3Cpath d='M28 14 42 28 28 42 14 28Z' fill='none' stroke='white' stroke-opacity='.18' stroke-width='1.2'/%3E%3C/svg%3E"),linear-gradient(150deg,var(--c1),var(--cc) 50%,var(--c2))}
+.cov.islamic .stt{display:block;inset:8px;border:1.5px solid #c9a24aee;border-radius:17px}
+.cov.islamic .lb{border:1px solid #c9a24a}
+/* هندسي */
+.cov.geo{background:conic-gradient(from 45deg at 100% 0,#ffffff22 0 25%,transparent 0),conic-gradient(from 225deg at 0 100%,#00000026 0 25%,transparent 0),linear-gradient(150deg,var(--c1),var(--cc))}
+/* خطوط */
+.cov.stripe{background:repeating-linear-gradient(135deg,#ffffff1c 0 14px,transparent 14px 28px),linear-gradient(150deg,var(--c1),var(--cc) 55%,var(--c2))}
+/* شريط */
+.cov.band{background:linear-gradient(var(--cc),var(--cc))}
+.cov.band .lb{border-radius:0;margin-inline:-16px;margin-top:20px;padding:14px 12px;background:#ffffffee;box-shadow:0 3px 8px #0003}
+/* بسيط */
+.cov.minimal{background:linear-gradient(180deg,var(--cc) 0 34%,#fbfaf6 34%);color:#444;box-shadow:0 10px 22px #0002,0 2px 5px #0002}
+.cov.minimal .lb{background:#fff;margin-top:34px;box-shadow:0 6px 16px #0002}
+.cov.minimal .cn{background:#0000001f;color:#444}
+.cov.simple{background:var(--cc)}
+.cov.simple .gl{display:none}
+/* الصفحة: حواف ناعمة */
+.sheet{border-radius:22px!important;overflow:hidden;box-shadow:0 4px 14px #0002!important}
+.pgw{border-radius:16px}
 </style></head><body><div id="aw" class="aw" style="display:none"></div>
 <header style="display:flex;align-items:center;gap:6px;padding:10px 8px 4px"><button onclick="menu()" aria-label="القائمة" style="background:none;color:var(--tx);padding:8px"><svg width="30" height="30" viewBox="0 0 28 28"><path d="M4 8h20M4 14h20M4 20h20" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/></svg></button><span style="font-size:20px;font-weight:700">📖 مُثبِّت القرآن</span></header>
 <div id="dtb" style="position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;z-index:2;text-align:left;font-size:11px;line-height:1.35;color:var(--mut)"><div id="dd"></div><b id="dtm" style="font-variant-numeric:tabular-nums;color:var(--tx)"></b></div><div id="ban"></div><main id="v"></main><div id="sh"></div><div id="pv"></div>
@@ -820,6 +863,8 @@ function awGuest(){try{localStorage.setItem('qmrm_guest','1')}catch(e){}awHide()
 /* الصق هنا Web client ID من: Firebase > Authentication > Sign-in method > Google > Web SDK configuration */
 const GCID='';
 let gsiP=null;
+function gUnstick(){if(!busy)return;setTimeout(()=>{if(busy&&!fu){busy=0;sync('')}},1800)}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')gUnstick()});window.addEventListener('focus',gUnstick);
 function gsiLoad(){return gsiP||(gsiP=new Promise((ok,no)=>{if(window.google&&google.accounts&&google.accounts.id)return ok();const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=ok;s.onerror=()=>no(new Error('gsi'));document.head.appendChild(s)}))}
 async function gPopup(){const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});await fa.signInWithPopup(p)}
 async function aGoogle(){if(busy)return;busy=1;sync('⏳ جارٍ فتح حسابات Google...');
@@ -835,12 +880,12 @@ async function aGoogle(){if(busy)return;busy=1;sync('⏳ جارٍ فتح حسا�
 /* ---------- دفتر الملاحظات ---------- */
 const NB_ST=[['lined','📏 مسطّر'],['grid','▦ مربعات'],['dot','⠿ منقّط'],['plain','📄 سادة'],['school','🎓 مدرسي'],['en','ABC']];
 const NB_FF=[['system-ui,Tahoma,sans-serif','عادي'],['Georgia,serif','كلاسيكي'],['Courier New,monospace','آلة كاتبة'],['Comic Sans MS,cursive','بخط اليد'],...[['Amiri','نسخ — أميري'],['Amiri Quran','نسخ — أميري قرآن'],['Noto Naskh Arabic','نسخ — نوتو'],['Scheherazade New','نسخ — شهرزاد'],['Lateef','نسخ — لطيف'],['Noto Kufi Arabic','كوفي — نوتو'],['Reem Kufi','كوفي — ريم'],['Kufam','كوفي — كوفام'],['Aref Ruqaa','رقعة — عارف'],['Noto Nastaliq Urdu','نستعليق'],['Cairo','القاهرة'],['Tajawal','تجوّل'],['Almarai','المرعي'],['Changa','تشانغا'],['El Messiri','المسيري'],['Markazi Text','مركزي'],['IBM Plex Sans Arabic','IBM بلكس'],['Harmattan','هرمتان'],['Mada','مدى'],['Lalezar','لالزار (عناوين)'],['Rakkas','رقاص (زخرفي)'],['Jomhuria','جمهورية (زخرفي)'],['Katibeh','كاتبة (خط يد)'],['Mirza','ميرزا'],['Lemonada','ليمونادا']].map(([f,l])=>["'"+f+"',system-ui,serif",l])];
-const NB_CV=[['classic','📘 مجلّد'],['spiral','🌀 حلزوني'],['simple','▭ سادة'],['pad','📒 سلك أبيض'],['pade','📒 سلك (الجهة الأخرى)']],NB_CL=['#1b5e20','#1565c0','#6a1b9a','#c62828','#ef6c00','#00695c','#4e342e','#37474f'];
+const NB_CV=[['classic','📘 مجلّد'],['leather','🟫 جلد'],['modern','🎯 عصري'],['gradient','🌈 متدرج'],['islamic','🕌 زخرفة'],['geo','🔷 هندسي'],['stripe','〰️ خطوط'],['band','▬ شريط'],['minimal','▫️ بسيط'],['simple','▭ سادة']],NB_CL=['#1b5e20','#1565c0','#6a1b9a','#c62828','#ef6c00','#00695c','#4e342e','#37474f'];
 const wc=x=>((x||'').trim().match(/\S+/g)||[]).length;let nbCur=0,nbDr=null,nbT=null,nbEd=0;const nbOpen=new Set();
 function nbInit(){if(S.nbs)return;S.nbs=[];const o=S.nb;if(o&&o.notes&&o.notes.some(n=>n.t||n.x))S.nbs.push({id:S.id++,name:'دفتري',desc:'',c:NB_CL[0],cv:'classic',paper:o.style||'lined',fs:o.fs||18,ff:o.ff||0,notes:o.notes,cur:o.cur,lock:null})}
 const nbK=()=>S.nbs.find(b=>b.id==(nbCur||nbEd));
 async function hp(p){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('qmrm'+p));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){let h=5381;for(const c of 'qmrm'+p)h=((h<<5)+h+c.charCodeAt(0))|0;return'x'+h}}
-function cover(b,click){const img=b.img?`;background-image:linear-gradient(#0002,#0006),url(${b.img});background-size:cover;background-position:center`:'',cls=b.cv=='pade'?'pad e':b.cv;return `<div class="cov ${cls}" style="--cc:${b.c}${img}" onclick="${click}"><div class="lb"><b style="font-family:${(NB_FF[b.cf||0]||NB_FF[0])[0]};font-size:18px">${esc(b.name||'بلا اسم')}</b>${b.desc?`<div style="font-size:12px;opacity:.75;margin-top:3px">${esc(b.desc).slice(0,60)}</div>`:''}</div>${b.lock?'<span class="lk">🔒</span>':''}<div style="font-size:12px;margin-top:8px;opacity:.9">${(b.notes||[]).length} صفحات</div></div>`}
+function cover(b,click){const img=b.img?`;background-image:linear-gradient(#0002,#0006),url(${b.img});background-size:cover;background-position:center`:'',cls=NB_CV.some(x=>x[0]==b.cv)?b.cv:'classic';return `<div class="cov ${cls}" style="--cc:${b.c}${img}" onclick="${click}"><i class="gl"></i><i class="stt"></i><i class="orn"></i><div class="lb"><b style="font-family:${(NB_FF[b.cf||0]||NB_FF[0])[0]};font-size:18px">${esc(b.name||'بلا اسم')}</b>${b.desc?`<div style="font-size:12px;opacity:.75;margin-top:3px">${esc(b.desc).slice(0,60)}</div>`:''}</div>${b.lock?'<span class="lk">🔒</span>':''}<div class="cn">${(b.notes||[]).length} صفحات</div></div>`}
 function notebook(){nbInit();return nbCur&&nbK()?editor():shelf()}
 function shelf(){return `<div class="row sp" style="padding:4px 14px"><b style="font-size:18px">📓 دفاتري</b><button class="g" onclick="go('home')">رجوع</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:6px 14px">${S.nbs.map(b=>`<div style="position:relative">${cover(b,`nbOpenB(${b.id})`)}<button class="pbtn" style="position:absolute;bottom:6px;inset-inline-end:6px;width:34px;height:34px;background:#fffe;color:#222" onclick="event.stopPropagation();nbEditCover(${b.id})">${svg('edit')}</button></div>`).join('')}<div class="cov newb" onclick="nbNewSheet()"><div style="font-size:34px">➕</div><div>دفتر جديد</div></div></div><div class="m" style="text-align:center;padding:0 14px">اضغط زر القلم على الدفتر لتعديل شكله (الغلاف والألوان والصفحة والقفل).</div>`}
 function nbEdSet(k,v){nbK()[k]=v;save();draw();nbEditCover(nbEd)}
@@ -900,7 +945,7 @@ function nbSzSet(v){nbSz[nbDraw]=+v;const e=$('#szv');if(e)e.textContent=v}
 function editor(){const b=nbK();if(!b.notes.length)b.notes.push({id:S.id++,x:'',u:Date.now()});b.notes.forEach(n=>{if(n.t){n.x=n.t+'\n'+n.x;n.t=''}});if(nbPi>=b.notes.length)nbPi=b.notes.length-1;
  const words=b.notes.reduce((a,n)=>a+wc(n.x),0),cn=b.notes[nbPi],f0=nbF(b,cn),p0=nbPP(b,cn),pg=b.notes.map((x,i)=>nbPageHtml(b,x,i)).join(''),o0=nbObjCur();
  const sw=(c,fn,cur)=>`<span onclick="${fn}('${c}')" style="width:28px;height:28px;border-radius:50%;background:${c};border:3px solid ${cur==c?'var(--tx)':'var(--bd)'}"></span>`,lab='padding:8px 12px;border-radius:10px;border:1px solid var(--pri);color:var(--pri);cursor:pointer;font-size:13px';
- const stk=S.stk||[],usedO=(cn.im||[]),isSaved=o=>stk.some(k=>k.src===o.src);
+ const stk=S.stk||[],usedO=(cn.im||[]),isSaved=o=>stk.some(k=>k.key===stkKey(o));
  const stkPanel=`<div style="display:flex;flex-wrap:wrap;gap:8px;margin:6px 0">${stk.map(k=>`<div style="position:relative"><img src="${k.src}" onclick="nbUseStk(${k.id})" style="width:58px;height:58px;object-fit:contain;border:1px solid var(--bd);border-radius:8px;background:#fff"><span onclick="ask('هل تريد حذف الملصق من الملصقات المحفوظة؟',()=>stkDel(${k.id}),'نعم، احذف','لا')" style="position:absolute;top:-7px;inset-inline-end:-7px;width:20px;height:20px;border-radius:50%;background:var(--bad);color:#fff;text-align:center;line-height:20px;font-size:13px">×</span></div>`).join('')||'<div class="m">لا ملصقات محفوظة بعد</div>'}</div><div class="row sp" style="cursor:pointer" onclick="tbSu=!tbSu;draw()"><span>الملصقات المستخدمة في هذه الصفحة (${usedO.length})</span><span class="m">${tbSu?'▴':'▾'}</span></div>${tbSu?`<div style="margin:6px 0">${usedO.map(o=>`<div class="row" style="flex-wrap:nowrap;padding:4px 0"><img src="${o.src}" style="width:48px;height:48px;object-fit:contain;border:1px solid var(--bd);border-radius:8px;background:#fff"><span style="flex:1"></span>${isSaved(o)?'<span class="m">✓ محفوظ</span>':`<button class="g" style="padding:5px 12px" onclick="stkSave(${o.id})">حفظ</button>`}</div>`).join('')||'<div class="m">لا ملصقات في هذه الصفحة</div>'}</div>`:''}`;
  const tools=`<div class="tr"><button class="g ${nbDraw=='p'?'on':''}" onclick="nbTool('p')">${svg('edit')}</button><button class="g ${nbDraw=='h'?'on':''}" onclick="nbTool('h')">${svg('hl')}</button><button class="g ${nbDraw=='e'?'on':''}" onclick="nbTool('e')">${svg('er')}</button><button class="g ${nbRuler?'on':''}" onclick="nbRuler=!nbRuler;draw()">${svg('rl')}</button><button class="g" onclick="nbUndo()">${svg('reset')}</button><button class="g" onclick="ask('مسح كل الرسم في هذه الصفحة؟',nbClr,'نعم، امسح')">${svg('trash')}</button></div>
  ${nbDraw?`<div class="tr"><span class="m">الحجم: <b id="szv">${nbSz[nbDraw]}</b></span><input type="range" class="sz" min="${SZR[nbDraw][0]}" max="${SZR[nbDraw][1]}" value="${nbSz[nbDraw]}" oninput="nbSzSet(this.value)" style="flex:1"></div>`:'<div class="m">اختر أداة (قلم / قلم تحديد / ممحاة) ثم ارسم على الصفحة.</div>'}
@@ -1078,7 +1123,10 @@ function nbObjDown(e,el){e.preventDefault();e.stopPropagation();const n=nbK().no
   if(ks.length>=2){const a=pts[ks[0]],b=pts[ks[1]],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(!st.d){st.d=d||1;st.w2=o.w}else o.w=Math.max(.05,Math.min(1.2,st.w2*d/st.d))}
   else if(isH)o.w=Math.max(.05,Math.min(1.2,st.w+(ev.clientX-st.px)/pw));else{o.x=st.x+(ev.clientX-st.px)/pw;o.y=st.y+(ev.clientY-st.py)/pw}nbObjStyle(el,o)};
  el.onpointerup=el.onpointercancel=ev=>{delete pts[ev.pointerId];if(!Object.keys(pts).length){el.onpointermove=null;save();draw()}}}
-function stkSave(oid){const o=(nbCP().im||[]).find(x=>x.id==oid);if(!o)return;S.stk=S.stk||[];if(S.stk.some(k=>k.src===o.src)){toast('محفوظ مسبقاً');return}S.stk.push({id:S.id++,src:o.src,ar:o.ar});save();toast('أُضيف إلى الملصقات المحفوظة');draw()}
+const stkKey=o=>o.src.length+o.src.slice(-50)+JSON.stringify(o.c||{});
+function stkSave(oid){const o=(nbCP().im||[]).find(x=>x.id==oid);if(!o)return;S.stk=S.stk||[];const key=stkKey(o);if(S.stk.some(k=>k.key===key)){toast('محفوظ مسبقاً');return}
+ const im=new Image();im.onload=()=>{const c=o.c||{l:0,t:0,r:0,b:0},cw=1-c.l-c.r,ch=1-c.t-c.b,sw=Math.max(1,Math.round(cw*im.width)),sh=Math.max(1,Math.round(ch*im.height)),cv=document.createElement('canvas');cv.width=sw;cv.height=sh;cv.getContext('2d').drawImage(im,Math.round(c.l*im.width),Math.round(c.t*im.height),sw,sh,0,0,sw,sh);
+  S.stk.push({id:S.id++,src:cv.toDataURL('image/png'),ar:sw/sh,key});save();toast('أُضيف إلى الملصقات المحفوظة (مقصوصاً)');draw()};im.src=o.src}
 function stkDel(id){S.stk=(S.stk||[]).filter(k=>k.id!=id);save();draw()}
 function nbUseStk(id){const k=(S.stk||[]).find(x=>x.id==id);if(!k)return;const n=nbCP();(n.im=n.im||[]).push({id:S.id++,k:'st',src:k.src,ar:k.ar,x:.3,y:.2,w:.25,c:{l:0,t:0,r:0,b:0}});nbSelO=n.im[n.im.length-1].id;save();draw()}
 function nbObjSz(d){const o=nbObjCur();if(!o)return;o.w=Math.max(.05,Math.min(1.2,o.w*(1+d)));save();draw()}
