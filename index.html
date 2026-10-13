@@ -297,7 +297,7 @@ function tmNew(id){$('#sh').innerHTML=shW(`<b>مدة تايمر المهمة</b>
 function tmAdd(id){const v=parseT($('#tmv').value);if(!(v>0))return;tkG(id).tm=mkT(v);save();$('#sh').innerHTML='';draw()}
 const tmM=(k,id)=>((k=='t'?S.tasks:S.cont).find(x=>x.id==id)||{}).tm;
 function tmTick(){[...(S.tasks||[]).filter(t=>t.tm).map(t=>['t',t.id,t.tm,t.s]),...(S.cont||[]).map(c=>['c',c.id,c.tm,c.name])].forEach(([k,id,m,nm])=>{if(!m.run)return;const l=mLeft(m);
- if(l<=0&&!m.ex){m.ex=m.end;save();ringStart();tmBanner(k,id,nm);try{if(Notification.permission=='granted')new Notification('انتهى الوقت',{body:nm})}catch(x){}}
+ if(l<=0&&!m.ex){m.ex=m.end;save();ringStart();tmBanner(k,id,nm);notif('انتهى الوقت',{body:nm})}
  else if(m.ex&&l>0){m.ov=(m.ov||0)+(Date.now()-m.ex)/1000;m.ex=0}
  const e=document.getElementById((k=='t'?'tm':'ct')+id);if(e){const z=mShow(m);e.textContent=z.t;e.style.color=z.red?'var(--bad)':''}})}
 setInterval(tmTick,1000);
@@ -333,7 +333,7 @@ function tGo(){const m=tG();tMsg='';
  save();tDraw()}
 function tReset(){const m=tG();tMsg='';m.run=false;m.left=m.dur;save();tDraw()}
 setInterval(()=>{const m=S.timer;if(!m||!m.run)return;const l=tL(),e=document.getElementById('tmx');if(e)e.textContent=fmt(l);
- if(l<=0){m.run=false;m.left=0;save();beep();try{if(Notification.permission=='granted')new Notification('انتهى المؤقت ⏱')}catch(x){}
+ if(l<=0){m.run=false;m.left=0;save();beep();notif('انتهى المؤقت ⏱')
  $('#ban').innerHTML=`<div class="c" style="border-color:var(--pri)"><b>انتهى المؤقت ⏱</b><div class="row" style="margin-top:8px"><button onclick="ringStop();$('#ban').innerHTML=''">إغلاق</button></div></div>`;tDraw()}},1000);
 /* ---------- الاختبار ---------- */
 function pickQ(){
@@ -365,6 +365,8 @@ function alarms(){
 function addAl(){if(!addDays.length)return;S.alarms.push({id:S.id++,time:$('#at').value||'05:00',k:$('#ak').value,days:[...addDays].sort(),on:true});save();draw();
  if('Notification'in window&&Notification.permission=='default')Notification.requestPermission()}
 let fired='';
+/* إشعار يعمل على أندرويد: عبر الـ service worker لأن new Notification غير مدعوم هناك */
+function notif(t,o){try{if(typeof Notification=='undefined'||Notification.permission!='granted')return;o=Object.assign({icon:'icon-192.png',badge:'icon-192.png',vibrate:[300,100,300,100,300],requireInteraction:true,tag:'qm-'+Date.now()},o||{});const fb=()=>{try{new Notification(t,o)}catch(e){}};if('serviceWorker' in navigator&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(r=>r&&r.showNotification?r.showNotification(t,o):fb()).catch(fb);else fb()}catch(e){}}
 /* صفير المنبّه: ثلاث نبرات حادة تتكرر حتى الإيقاف (بحد أقصى دقيقة) */
 let ringT=null,ringC=null;
 function pulses(){try{ringC=ringC||new(window.AudioContext||window.webkitAudioContext)();const c=ringC;if(c.state=='suspended')c.resume();
@@ -377,7 +379,7 @@ function ringStop(){clearInterval(ringT);ringT=null;try{navigator.vibrate&&navig
 function beep(){ringStart()}
 function fire(k){
  const m=MSG[Math.floor(Math.random()*MSG.length)];beep();
- try{if(Notification.permission=='granted')new Notification(k=='حفظ'?'وقت الحفظ 📖':'وقت المراجعة 🔁',{body:m})}catch(e){}
+ notif(k=='حفظ'?'وقت الحفظ 📖':'وقت المراجعة 🔁',{body:m})
  $('#ban').innerHTML=`<div class="c" style="border-color:var(--pri)"><b>${k=='حفظ'?'وقت الحفظ 📖':'وقت المراجعة 🔁'}</b><div class="m">${m}</div>
  <div class="row" style="margin-top:8px"><button onclick="bdone('${k}')">تم ✅</button><button class="g" onclick="snooze('${k}')">غفوة 15 دقيقة ⏰</button></div></div>`}
 function bdone(k){ringStop();const t=due().find(x=>x.type==k);$('#ban').innerHTML='';if(t)done(t.id,'mastered')}
@@ -581,7 +583,7 @@ function remBody(){const R=(S.rem=S.rem||[]).slice().sort((a,b)=>a.at.localeComp
 function remAdd(){const t=$('#rt').value.trim(),d=$('#rd').value,h=$('#rh').value;if(!t||!d||!h)return;S.rem=S.rem||[];S.rem.push({id:S.id++,t,at:new Date(d+'T'+h).toISOString(),done:false});save();draw();try{if('Notification' in window&&Notification.permission=='default')Notification.requestPermission()}catch(e){}}
 function remMk(id,v){const r=S.rem.find(x=>x.id==id);chg(r.s,()=>{r.s=r.s==v?0:v;save();draw()})}
 function remDel(id){S.rem=(S.rem||[]).filter(x=>x.id!=id);save();draw()}
-function remTick(){const now=Date.now();let ch=0;(S.rem||[]).forEach(r=>{if(!r.done&&Date.parse(r.at)<=now){r.done=true;ch=1;const late=now-Date.parse(r.at)>3e5;beep();try{if(Notification.permission=='granted')new Notification('تذكير: '+r.t)}catch(x){}
+function remTick(){const now=Date.now();let ch=0;(S.rem||[]).forEach(r=>{if(!r.done&&Date.parse(r.at)<=now){r.done=true;ch=1;const late=now-Date.parse(r.at)>3e5;beep();notif('تذكير: '+r.t)
  $('#ban').innerHTML+=`<div class="c" style="border-color:var(--pri)"><b>🔔 تذكير</b><div style="margin:6px 0">${esc(r.t)}</div>${late?`<div class="m">كان موعده ${hm(new Date(r.at))}</div>`:''}<button onclick="ringStop();this.parentNode.remove()">تم</button></div>`}});if(ch){save();if(tab=='re')draw()}}
 setInterval(remTick,15000);
 let reTab='r';
