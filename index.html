@@ -14,7 +14,7 @@
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d1030;--card:#171b45;--tx:#e8eaf6;--pri:#7986cb;--mut:#9ea3c8;--bd:#2a2f66}}
 :root[data-theme=dark]{--bg:#0d1030;--card:#171b45;--tx:#e8eaf6;--pri:#7986cb;--mut:#9ea3c8;--bd:#2a2f66}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{line-height:1.65;margin:0;background:var(--bg);color:var(--tx);font-family:var(--ff);padding-bottom:80px}
+body{min-height:100vh;min-height:100dvh;line-height:1.65;margin:0;background:var(--bg);color:var(--tx);font-family:var(--ff);padding-bottom:80px}
 h1{font-size:20px;margin:0;padding:14px 16px}
 .c{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:10px 12px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{justify-content:space-between}
@@ -182,7 +182,7 @@ let S={tasks:[],logs:[],alarms:[],mist:[],skipFri:true,id:1};
 try{Object.assign(S,JSON.parse(localStorage.getItem('qmrm')||'{}'))}catch(e){}
 try{const _l=localStorage.getItem('qmrm_lang');if(_l)S.lang=_l}catch(e){}
 const BOOT_LANG=S.lang=='en'?'en':'ar';S.lang=BOOT_LANG;
-const save=()=>{S._u=Date.now();try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}push()};
+const save=()=>{S._u=Date.now();try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){if(!fu)try{synBar('مساحة التخزين في هذا الجهاز ممتلئة، لم تُحفظ آخر تغييراتك. قلّل عدد الصور أو سجّل الدخول للحفظ السحابي.',1)}catch(x){}}push()};
 const $=s=>document.querySelector(s),ymd=d=>d.toLocaleDateString('en-CA'),hm=d=>d.toTimeString().slice(0,5);
 const hij=d=>d.toLocaleDateString(S.lang=='en'?'en-u-ca-islamic-umalqura':'ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -511,15 +511,75 @@ function fbInit(){
  if(!FB.apiKey||!window.firebase)return;
     if(!awG()){awSplash();setTimeout(()=>{const a=document.getElementById('aw');if(a&&a.querySelector&&a.querySelector('.awspin'))awHide()},6000)}
     try{firebase.initializeApp(FB);const dA=firebase.auth(),dF=firebase.firestore();fbOK=true;accBoot(dA,dF)}catch(e){}}
-async function pushNow(){if(!fu)return;try{await fs.collection('users').doc(fu.uid).set({d:JSON.stringify(S),u:S._u||Date.now()});sync('تمت المزامنة ✅')}catch(e){sync('⚠️ تعذّرت المزامنة ('+(e.code||e.message)+')')}}
-const AUTOSYNC=()=>{try{return localStorage.getItem('qmrm_auto')!=='0'}catch(e){return true}};
-function push(){if(!fu||!AUTOSYNC())return;clearTimeout(pt);pt=setTimeout(pushNow,1500)}
+/* ===== المزامنة: تلقائية دائماً + تتجدد لحالها ===== */
+const INL=300000,PART=300000;let pushing=false,again=false,pushFail=0,unsub=null,dnTry=0;
+function cutParts(d){const a=[];let i=0;while(i<d.length){let j=Math.min(d.length,i+PART);if(j<d.length){const c=d.charCodeAt(j-1);if(c>=0xD800&&c<=0xDBFF)j--}a.push(d.slice(i,j));i=j}return a}
+function synBar(m,bad){let e=document.getElementById('syb');if(!m){if(e)e.remove();return}
+ if(!e){e=document.createElement('div');e.id='syb';e.style.cssText='position:fixed;inset-inline:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:25;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.5;box-shadow:0 4px 18px #0004;text-align:center';document.body.appendChild(e)}
+ e.style.background=bad?'var(--bad)':'var(--card)';e.style.color=bad?'#fff':'var(--tx)';e.textContent=m}
+function pushBad(e){const c=(e&&e.code)||'';let m,bad=1;
+ if(c==='permission-denied')m='تعذّر رفع بياناتك: صلاحيات Firestore تحتاج تحديثاً (أضف قاعدة parts)';
+ else if(c==='invalid-argument'||/size|large|exceed/i.test((e&&e.message)||''))m='تعذّر رفع بياناتك: حجم البيانات كبير، احذف بعض الصور من الدفاتر';
+ else if(c==='unavailable'||c==='deadline-exceeded'||c==='network-request-failed'){m='لا يوجد اتصال بالإنترنت، ستُرفع تغييراتك تلقائياً عند عودته';bad=0}
+ else m='تعذّرت المزامنة ('+(c||(e&&e.message)||'?')+')، سنعيد المحاولة تلقائياً';
+ sync('⚠️ '+m);synBar(m,bad)}
+async function pushNow(strict){
+ if(!fu||!fs)return false;
+ if(pushing){again=true;if(!strict)return false;while(pushing)await new Promise(r=>setTimeout(r,200))}
+ pushing=true;let ok=false;
+ try{
+  do{again=false;
+   const uid=fu.uid,d=JSON.stringify(S),u=S._u||Date.now(),ref=fs.collection('users').doc(uid);
+   if(d.length<=INL)await ref.set({d,u,n:0});
+   else{const ps=cutParts(d),bt=fs.batch(),pc=ref.collection('parts');ps.forEach((x,i)=>bt.set(pc.doc('p'+i),{s:x,u}));bt.set(ref,{d:'',u,n:ps.length});await bt.commit()}
+  }while(again);
+  ok=true;pushFail=0;synBar('');sync('تمت المزامنة ✅')
+ }catch(e){pushFail++;pushBad(e);const c=e&&e.code;if(c!=='permission-denied'&&c!=='invalid-argument')setTimeout(()=>{if(fu&&!pt&&!pushing)pushNow()},Math.min(60000,4000*Math.pow(2,Math.min(pushFail,4))))}
+ finally{pushing=false}
+ return ok}
+function push(){if(!fu)return;clearTimeout(pt);pt=setTimeout(()=>{pt=null;pushNow()},1500)}
+async function readCloud(uid){
+ for(let t=0;t<2;t++){
+  const ref=fs.collection('users').doc(uid),r=await ref.get();
+  if(!r.exists)return null;
+  const c=r.data();let d=c.d||'';
+  if(c.n>0){const q=await ref.collection('parts').get(),m={};q.forEach(x=>{m[x.id]=x.data()});const a=[];let bad=0;
+   for(let i=0;i<c.n;i++){const x=m['p'+i];if(!x||x.u!==c.u){bad=1;break}a.push(x.s)}
+   if(bad){if(t==0){await new Promise(r=>setTimeout(r,900));continue}throw{code:'parts-mismatch'}}
+   d=a.join('')}
+  return{d,u:c.u||0}}
+ return null}
+function localExtra(cl){const ids=a=>new Set((a||[]).map(x=>x.id)),n=ids(cl.nbs),t=ids(cl.tasks);return(S.nbs||[]).some(x=>!n.has(x.id))||(S.tasks||[]).some(x=>!t.has(x.id))}
+function adopt(cl,warn){
+ const extra=warn&&localExtra(cl);
+ if(extra){try{localStorage.setItem('qmrm_prev_'+fu.uid,JSON.stringify({at:Date.now(),s:S}))}catch(e){}}
+ S=Object.assign(EMPTY(),cl);S._uid=fu.uid;S.lang=BOOT_LANG;migrate();
+ try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}
+ applyTheme();draw();
+ if(extra){synBar('وُجدت بيانات على هذا الجهاز غير موجودة في السحابة. يمكنك استعادتها من الإعدادات ← استعادة بيانات الجهاز.',1);setTimeout(()=>synBar(''),15000)}}
+const editingNow=()=>{const a=document.activeElement;return !!a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.nodeName||''))};
+async function syncDown(){
+ if(!fu||!fs||pushing||pt)return;
+ const uid=fu.uid;
+ try{const c=await readCloud(uid);if(!c||!fu||fu.uid!==uid||pt||pushing)return;
+  if(c.u>(S._u||0)){
+   if(editingNow()&&dnTry<10){dnTry++;setTimeout(syncDown,3000);return}
+   dnTry=0;adopt(JSON.parse(c.d),0);sync('تم تحديث بياناتك من السحابة ☁️')}
+ }catch(e){}}
+function listen(){
+ if(unsub){try{unsub()}catch(e){}unsub=null}
+ if(!fu||!fs)return;const uid=fu.uid;
+ try{unsub=fs.collection('users').doc(uid).onSnapshot(sn=>{if(!fu||fu.uid!==uid||sn.metadata.hasPendingWrites)return;const c=sn.data();if(c&&(c.u||0)>(S._u||0))syncDown()},()=>{})}catch(e){}}
 async function pull(){
- try{const r=await fs.collection('users').doc(fu.uid).get();
-  if(r.exists){const c=r.data();
-   if(S._uid!==fu.uid||(c.u||0)>(S._u||0)){S=Object.assign(EMPTY(),JSON.parse(c.d));S._uid=fu.uid;S.lang=BOOT_LANG;migrate();
-    try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}draw();sync('تم تحميل بياناتك من السحابة ☁️');return}}
-  S._uid=fu.uid;save();sync('تمت المزامنة ✅')}catch(e){sync('⚠️ تعذّر الاتصال ('+(e.code||e.message)+')')}}
+ try{const uid=fu.uid,c=await readCloud(uid);
+  if(!fu||fu.uid!==uid)return;
+  if(c){const cl=JSON.parse(c.d);
+   if(S._uid!==uid||c.u>(S._u||0)){adopt(cl,1);sync('تم تحميل بياناتك من السحابة ☁️');listen();return}}
+  S._uid=uid;save();sync('تمت المزامنة ✅');listen()
+ }catch(e){pushBad(e)}}
+function prevGet(){try{const t=localStorage.getItem('qmrm_prev_'+(fu&&fu.uid));return t?JSON.parse(t):null}catch(e){return null}}
+function restorePrev(){const p=prevGet();if(!p||!fu)return;
+ ask('استعادة بيانات هذا الجهاز التي كانت قبل التحميل من السحابة؟ ستُرفع إلى حسابك.',()=>{S=Object.assign(EMPTY(),p.s);S._uid=fu.uid;S.lang=BOOT_LANG;migrate();try{localStorage.removeItem('qmrm_prev_'+fu.uid)}catch(e){}save();applyTheme();draw();toast('تمت الاستعادة')},'نعم، استعد')}
 const ERR={'auth/invalid-email':'البريد غير صحيح','auth/invalid-credential':'البريد أو كلمة المرور غير صحيحة','auth/user-not-found':'لا يوجد حساب بهذا البريد','auth/wrong-password':'كلمة المرور غير صحيحة','auth/email-already-in-use':'هذا البريد مسجّل مسبقاً، سجّل الدخول','auth/weak-password':'كلمة المرور ضعيفة (6 أحرف على الأقل)','auth/network-request-failed':'تحقق من الإنترنت','auth/missing-password':'اكتب كلمة المرور','auth/missing-email':'اكتب بريدك الإلكتروني','auth/operation-not-allowed':'تسجيل الدخول بالبريد غير مفعّل في Firebase','auth/too-many-requests':'محاولات كثيرة، انتظر قليلاً','auth/unauthorized-domain':'هذا النطاق غير مصرّح به في Firebase','auth/internal-error':'خطأ داخلي في Firebase','bad-username':'اسم المستخدم من 3 إلى 20 حرفاً: أحرف إنجليزية صغيرة وأرقام و _ و .','username-taken':'اسم المستخدم محجوز، اختر اسماً آخر','username-notfound':'اسم المستخدم غير موجود','permission-denied':'غير مسموح: حدّث قواعد Firestore (القواعد الجديدة في شرح التحديث)','auth/popup-closed-by-user':'أُغلقت نافذة Google قبل إتمام الدخول','auth/popup-blocked':'المتصفح حظر النافذة، اسمح بالنوافذ المنبثقة وأعد المحاولة','auth/cancelled-popup-request':'أُلغيت المحاولة، أعد المحاولة','auth/account-exists-with-different-credential':'هذا البريد مسجّل بطريقة دخول أخرى'};
 const er=e=>sync('⚠️ '+(ERR[e.code]||'حدث خطأ')+' ('+(e.code||e.message)+')');
 const unOk=u=>/^[a-z0-9_.]{3,20}$/.test(u);
@@ -541,7 +601,7 @@ async function doRs(id){if(!id){sync('⚠️ اكتب بريدك أو اسم ا�
   sync('✅ أرسلنا الرابط إلى '+m+' — افحص صندوق الوارد وكذلك «الرسائل غير المرغوبة (Spam)»، وقد يتأخر دقائق.')}catch(e){er(e)}busy=0}
 async function aRs(){return doRs($('#ae').value.trim())}
 async function out(){
- try{await fs.collection('users').doc(fu.uid).set({d:JSON.stringify(S),u:S._u||Date.now()})}catch(e){tab='se';draw();sync('تعذّر رفع بياناتك، لم يتم الخروج ⚠️');return}
+ clearTimeout(pt);pt=null;if(!(await pushNow(true))){tab='se';draw();sync('تعذّر رفع بياناتك، لم يتم الخروج ⚠️');return}
  const uid=fu.uid;accQuiet=1;
  try{await fa.signOut()}catch(e){}
  accRemove(uid);const o=accNext();$('#sh').innerHTML='';
@@ -905,8 +965,6 @@ async function chPassDo(){const a=$('#cpw').value,b=$('#cpw2').value,m=$('#cpm')
    try{await fu.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());await run(has)}catch(e2){m.textContent='⚠️ '+(ERR[e2.code]||e2.message||'تعذّر الحفظ');return}}
   else{m.textContent='⚠️ '+(ERR[e.code]||e.message||'تعذّر الحفظ');return}}
  $('#sh').innerHTML='';sync(has?'✅ تم تغيير كلمة المرور':'✅ أُضيفت كلمة مرور لحسابك، يمكنك الدخول بـ Google أو بالبريد/اسم المستخدم');draw()}
-function syncSheet(){const a=AUTOSYNC();$('#sh').innerHTML=shW(`<b>مزامنة البيانات</b><div class="m" style="margin:6px 0">اختر طريقة المزامنة مع حسابك.</div><div class="seg"><span class="${a?'on':''}" onclick="setAutoSync(1)">تلقائية</span><span class="${a?'':'on'}" onclick="setAutoSync(0)">يدوية</span></div><div class="m" style="margin:10px 0">${a?'تُرفع تغييراتك إلى حسابك تلقائياً بعد كل تعديل.':'لا تُرفع التغييرات إلا عند ضغط «مزامنة الآن».'}</div><button onclick="$('#sh').innerHTML='';pushNow()">مزامنة الآن</button><button class="g" onclick="$('#sh').innerHTML=''">إغلاق</button>`)}
-function setAutoSync(v){try{localStorage.setItem('qmrm_auto',v?'1':'0')}catch(e){}syncSheet();if(v)push()}
 function settings(){const P=prof(),E=pe.on,u=fu;
  const row=(i,l,v,x)=>`<div class="prow"><span class="pi">${svg(i)}</span><span class="pl">${l}</span><span class="pv">${v}</span>${x||''}</div>`;
  const act=(i,l,f,bad)=>`<div class="prow act" onclick="${f}"><span class="pi" ${bad?'style="background:#e5393522;color:var(--bad)"':''}>${svg(i)}</span><span class="pl" ${bad?'style="color:var(--bad)"':''}>${l}</span><span class="ch">${svg('chev')}</span></div>`;
@@ -924,7 +982,7 @@ function settings(){const P=prof(),E=pe.on,u=fu;
  ${row('globe','بلد الإقامة',E?`<button class="g" onclick="ctrySheet()" style="padding:6px 10px">${cName(P.country)} ▾</button>`:cName(P.country))}
  ${row('calendar','عضو منذ',esc(S.since||'—'))}</div>
  ${accCard()}<div class="ph">إعدادات الحساب</div><div class="pcard">
- ${u?act('lock',((u&&u.providerData||[]).some(x=>x.providerId==='password'))?'تغيير كلمة المرور':'إنشاء كلمة مرور','chPass()')+act('cloud','مزامنة البيانات','syncSheet()')+act('logout','تسجيل الخروج',"ask('تسجيل الخروج يمسح البيانات من هذا الهاتف وتبقى محفوظة في حسابك. متابعة؟',out,'نعم، اخرج')"):''}
+ ${u?act('lock',((u&&u.providerData||[]).some(x=>x.providerId==='password'))?'تغيير كلمة المرور':'إنشاء كلمة مرور','chPass()')+(prevGet()?act('reset','استعادة بيانات الجهاز السابقة','restorePrev()'):'')+act('logout','تسجيل الخروج',"ask('تسجيل الخروج يمسح البيانات من هذا الهاتف وتبقى محفوظة في حسابك. متابعة؟',out,'نعم، اخرج')"):''}
  ${u?act('userx','حذف الحساب نهائياً',"typedAsk('حذف الحساب نهائياً','سيُحذف حسابك واسم المستخدم وكل بياناتك السحابية نهائياً ولا يمكن التراجع.','delAcc')",1):act('trash','حذف بياناتي من الجهاز',"typedAsk('حذف بيانات الجهاز','ستُحذف كل بياناتك المحفوظة في هذا الجهاز ولا يمكن التراجع.','wipe')",1)}</div>
  <div id="sm" style="padding:10px 24px;min-height:24px;font-size:14px">${esc(sm)}</div></div>`}
 function acct(){
@@ -973,7 +1031,7 @@ async function awRs(){await doRs(awGv('awe').trim())}
 async function awGoogle(){await aGoogle()}
 function awGuest(){try{localStorage.setItem('qmrm_guest','1')}catch(e){}awHide();if(tab=='se')go('home')}
 /* الصق هنا Web client ID من: Firebase > Authentication > Sign-in method > Google > Web SDK configuration */
-const GCID='';
+const GCID='353485701859-rk57jeo543fsn0rs5sk9vjpildm1mta3.apps.googleusercontent.com';
 let gsiP=null;
 function gUnstick(){if(!busy)return;setTimeout(()=>{if(busy&&!fu){busy=0;sync('')}},1800)}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')gUnstick()});window.addEventListener('focus',gUnstick);
@@ -1285,5 +1343,5 @@ async function nbLockSet(){const a=$('#nbp').value,b=$('#nbp2').value,q=qRead('n
 /* ---------- شريط التاريخ ---------- */
 function tickDate(){const d=new Date(),en=S.lang=='en';$('#dd').textContent=d.toLocaleDateString(en?'en-US':'ar-SY-u-nu-latn',{weekday:'short',day:'numeric',month:'short'});$('#dtm').textContent=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});const an=$('#dan');if(an){let nm='';try{if(fu)nm=accName(accList().find(x=>x.uid==fu.uid)||{uid:fu.uid,name:fu.displayName,email:fu.email})}catch(e){}if(an.textContent!==nm)an.textContent=nm}}
 tickDate();setInterval(tickDate,1000);
-migrate();if((S.profile||{}).country=='IL')S.profile.country='PS';S.since=S.since||ymd(new Date());if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));window.addEventListener('online',()=>{try{if(fu)pushNow()}catch(e){}});applyTheme();initLang();draw();fbInit();remTick();bkCheck();
+migrate();if((S.profile||{}).country=='IL')S.profile.country='PS';S.since=S.since||ymd(new Date());if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));window.addEventListener('online',()=>{try{if(fu){pushNow();syncDown()}}catch(e){}});document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState==='hidden'){if(pt){clearTimeout(pt);pt=null;pushNow()}}else syncDown()}catch(e){}});window.addEventListener('focus',()=>{try{syncDown()}catch(e){}});applyTheme();initLang();draw();fbInit();remTick();bkCheck();
 </script></body></html>
