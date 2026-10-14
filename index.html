@@ -459,11 +459,58 @@ window.addEventListener('unhandledrejection',e=>{try{sync('⚠️ '+((e.reason&&
 let fa=null,fs=null,fu=null,fbOK=false,sm='',pt=null,busy=0;
 const EMPTY=()=>({tasks:[],logs:[],alarms:[],mist:[],skipFri:true,id:1});
 function sync(m){sm=m;const e=$('#sm');if(e)e.textContent=m;const w=document.getElementById('awm');if(w){w.textContent=m;w.classList.toggle('ok',/^✅/.test(m))}}
+/* ---------- تعدد الحسابات والتبديل السريع ---------- */
+/* كل حساب إضافي يعمل في تطبيق Firebase مسمّى مستقل، فتبقى جلسته محفوظة ويكون التبديل فورياً */
+let addKey='',addPrev=null,accQuiet=0,awAdd=false;
+const accList=()=>{try{return JSON.parse(localStorage.getItem('qmrm_accs')||'[]')}catch(e){return[]}};
+const accSave=L=>{try{localStorage.setItem('qmrm_accs',JSON.stringify(L))}catch(e){}};
+const accAct=()=>{try{return localStorage.getItem('qmrm_acta')||''}catch(e){return''}};
+const accCache=uid=>{try{const t=localStorage.getItem('qmrm_u_'+uid);return t?Object.assign(EMPTY(),JSON.parse(t)):null}catch(e){return null}};
+const accName=a=>((fu&&a.uid==fu.uid&&prof().name)||a.n||a.name||(a.email||'').split('@')[0]||'—');
+const accAv=a=>{const ph=(fu&&a.uid==fu.uid&&prof().photo)||a.photo;return ph?`<img src="${esc(ph)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" alt="">`:esc((accName(a)||'?').trim().charAt(0).toUpperCase())};
+const accNext=()=>accList().find(a=>{try{return !!firebase.app(a.k).auth().currentUser}catch(e){return false}});
+function accSeen(key,u){const L=accList();let e=L.find(a=>a.uid==u.uid);if(!e){e={k:key,uid:u.uid};L.push(e)}e.k=key;e.name=u.displayName||e.name||'';e.email=u.email||e.email||'';e.photo=u.photoURL||e.photo||'';accSave(L)}
+function accGone(key){accSave(accList().filter(a=>a.k!==key))}
+function accCacheSave(){if(!fu)return;try{localStorage.setItem('qmrm_u_'+fu.uid,JSON.stringify(S))}catch(e){}const L=accList(),e=L.find(a=>a.uid==fu.uid);if(e){e.n=prof().name||e.n||'';accSave(L)}}
+function accRemove(uid){const L=accList(),e=L.find(a=>a.uid==uid);accSave(L.filter(a=>a.uid!=uid));try{localStorage.removeItem('qmrm_u_'+uid)}catch(x){}if(e&&e.k!=='[DEFAULT]'){try{firebase.app(e.k).delete()}catch(x){}}}
+function accEnter(u){if(S._uid&&S._uid!==u.uid){S=accCache(u.uid)||EMPTY();S._uid=u.uid;S.lang=BOOT_LANG;migrate();try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}applyTheme();draw()}}
+function accAttach(key,au){
+ au.onAuthStateChanged(u=>{
+  if(key===addKey&&u){const d=accList().find(a=>a.uid==u.uid);addKey='';awAdd=false;
+   if(d){const p=addPrev||{};fa=p.fa;fs=p.fs;fu=p.fu;try{au.signOut()}catch(e){}try{firebase.app(key).delete()}catch(e){}awHide();toast('هذا الحساب مضاف مسبقاً');accSwitch(d.uid);return}}
+  if(u)accSeen(key,u);else if(key!==addKey)accGone(key);
+  if(au!==fa||accQuiet)return;
+  if(u){fu=u;try{localStorage.setItem('qmrm_acta',u.uid)}catch(e){}accEnter(u);if(u.displayName&&!prof().name)prof().name=u.displayName;awHide();pull()}
+  else{fu=null;const o=(key!==addKey)?accNext():null;if(o){accSwitch(o.uid,true);return}if(!awG()||key===addKey)awShow()}
+  if(tab=='se')draw()})}
+function accBoot(dA,dF){const L=accList(),want=L.find(a=>a.uid===accAct());fa=dA;fs=dF;
+ L.filter(a=>a.k!=='[DEFAULT]').forEach(a=>{try{const ap=firebase.initializeApp(FB,a.k);if(want&&want.k===a.k){fa=ap.auth();fs=ap.firestore()}accAttach(a.k,ap.auth())}catch(e){}});
+ accAttach('[DEFAULT]',dA)}
+async function accSwitch(uid,noPush){
+ const a=accList().find(x=>x.uid==uid);if(!a||(fu&&fu.uid==uid&&!noPush))return;
+ let ap;try{ap=firebase.app(a.k)}catch(e){}
+ const au=ap&&ap.auth(),u=au&&au.currentUser;
+ if(!u){accGone(a.k);toast('انتهت جلسة هذا الحساب، أضفه من جديد');if(tab=='se')draw();return}
+ if(!noPush&&fu){clearTimeout(pt);try{await pushNow()}catch(e){}accCacheSave()}
+ fa=au;fs=ap.firestore();fu=u;try{localStorage.setItem('qmrm_acta',uid)}catch(e){}
+ S=accCache(uid)||EMPTY();S._uid=uid;S.lang=BOOT_LANG;migrate();try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}
+ pvOk=false;arPvOpen=false;tab='home';$('#sh').innerHTML='';awHide();applyTheme();draw();toast('تم التبديل إلى '+accName(a));pull()}
+function accTap(uid){$('#sh').innerHTML='';if(!fu||fu.uid!=uid)accSwitch(uid)}
+async function accAdd(){if(!fbOK||!fu||busy)return;
+ try{clearTimeout(pt);await pushNow()}catch(e){}accCacheSave();
+ const k='a'+Date.now().toString(36),ap=firebase.initializeApp(FB,k);
+ addPrev={fa,fs,fu};addKey=k;fa=ap.auth();fs=ap.firestore();fu=null;accAttach(k,fa);
+ $('#sh').innerHTML='';sync('');awMode='in';awAdd=true;awShow()}
+function accCancelAdd(){if(!addKey)return;const k=addKey;addKey='';awAdd=false;const p=addPrev||{};fa=p.fa;fs=p.fs;fu=p.fu;try{firebase.app(k).delete()}catch(e){}sync('');awHide();draw()}
+function accBar(){const L=accList();if(!fu||!L.length)return '';
+ const cell=(on,inner,label,f,dash)=>`<div onclick="${f}" style="text-align:center;width:62px;cursor:pointer"><div style="width:46px;height:46px;margin:0 auto 3px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;${dash?'border:2px dashed var(--bd);color:var(--pri)':'background:var(--pri);color:var(--on);font-weight:700;font-size:19px;border:3px solid '+(on?'var(--gold)':'transparent')}">${inner}</div><div style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${on?'font-weight:700':'opacity:.8'}">${label}</div></div>`;
+ return `<div class="dsec">الحسابات</div><div style="display:flex;gap:10px;padding:2px 16px 12px;flex-wrap:wrap;align-items:flex-start">${L.map(a=>cell(a.uid==fu.uid,accAv(a),esc(accName(a)),`accTap('${a.uid}')`)).join('')}${cell(0,svg('plus'),'إضافة حساب','accAdd()',1)}</div>`}
+function accCard(){const L=accList();if(!fu)return '';
+ return `<div class="ph">الحسابات</div><div class="pcard">${L.map(a=>`<div class="prow act" onclick="accTap('${a.uid}')"><span class="pi" style="overflow:hidden;font-weight:700">${accAv(a)}</span><span class="pl">${esc(accName(a))}<br><small class="m" dir="ltr">${esc(a.email)}</small></span><b style="color:var(--pri)">${fu&&a.uid==fu.uid?'✓':''}</b></div>`).join('')}<div class="prow act" onclick="accAdd()"><span class="pi">${svg('plus')}</span><span class="pl">إضافة حساب</span><span class="ch">${svg('chev')}</span></div></div>`}
 function fbInit(){
  if(!FB.apiKey||!window.firebase)return;
     if(!awG()){awSplash();setTimeout(()=>{const a=document.getElementById('aw');if(a&&a.querySelector&&a.querySelector('.awspin'))awHide()},6000)}
-    try{firebase.initializeApp(FB);fa=firebase.auth();fs=firebase.firestore();fbOK=true;
-  fa.onAuthStateChanged(u=>{fu=u;if(u&&u.displayName&&!prof().name)prof().name=u.displayName;if(u){awHide();pull()}else if(!awG())awShow();if(tab=='se')draw()})}catch(e){}}
+    try{firebase.initializeApp(FB);const dA=firebase.auth(),dF=firebase.firestore();fbOK=true;accBoot(dA,dF)}catch(e){}}
 async function pushNow(){if(!fu)return;try{await fs.collection('users').doc(fu.uid).set({d:JSON.stringify(S),u:S._u||Date.now()});sync('تمت المزامنة ✅')}catch(e){sync('⚠️ تعذّرت المزامنة ('+(e.code||e.message)+')')}}
 const AUTOSYNC=()=>{try{return localStorage.getItem('qmrm_auto')!=='0'}catch(e){return true}};
 function push(){if(!fu||!AUTOSYNC())return;clearTimeout(pt);pt=setTimeout(pushNow,1500)}
@@ -495,7 +542,13 @@ async function doRs(id){if(!id){sync('⚠️ اكتب بريدك أو اسم ا�
 async function aRs(){return doRs($('#ae').value.trim())}
 async function out(){
  try{await fs.collection('users').doc(fu.uid).set({d:JSON.stringify(S),u:S._u||Date.now()})}catch(e){tab='se';draw();sync('تعذّر رفع بياناتك، لم يتم الخروج ⚠️');return}
- await fa.signOut();S=EMPTY();try{localStorage.removeItem('qmrm');localStorage.removeItem('qmrm_guest')}catch(e){}$('#sh').innerHTML='';draw();awMode='in';awShow()}
+ const uid=fu.uid;accQuiet=1;
+ try{await fa.signOut()}catch(e){}
+ accRemove(uid);const o=accNext();$('#sh').innerHTML='';
+ if(o){accQuiet=0;await accSwitch(o.uid,true);return}
+ fa=firebase.auth();fs=firebase.firestore();fu=null;
+ S=EMPTY();try{localStorage.removeItem('qmrm');localStorage.removeItem('qmrm_guest');localStorage.removeItem('qmrm_acta')}catch(e){}
+ accQuiet=0;draw();awMode='in';awShow()}
 /* ---------- منتقي اللون الطيفي ---------- */
 const hsv2hex=(h,s,v)=>{const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1))};return'#'+[f(5),f(3),f(1)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('')};
 const hex2hsv=hx=>{const n=parseInt(hx.slice(1),16),r=(n>>16)/255,g=((n>>8)&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){h=mx==r?((g-b)/d)%6:mx==g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360}return[h,mx?d/mx:0,mx]};
@@ -556,6 +609,7 @@ Object.assign(EN,{"ضع ✓ أو ✗ على المهمة فتنتقل إلى ا�
 Object.assign(ENX,{'الصلاة':'Prayer'});Object.assign(EN,{'الحفظ والمراجعة':'Memorization & review','جداول المراجعة والحفظ':'Review and memorization schedules'});
 Object.assign(ENX,{'الدفتر':'Notebook'});Object.assign(EN,{'تقدّمك وسجل جلساتك':'Your progress and session history'});
 Object.assign(EN,{'مزامنة البيانات':'Sync data','اختر طريقة المزامنة مع حسابك.':'Choose how to sync with your account.','تلقائية':'Automatic','يدوية':'Manual','تُرفع تغييراتك إلى حسابك تلقائياً بعد كل تعديل.':'Your changes are uploaded to your account automatically after every edit.','لا تُرفع التغييرات إلا عند ضغط «مزامنة الآن».':'Changes are only uploaded when you tap “Sync now”.','مزامنة الآن':'Sync now','هل تريد الحذف؟':'Do you want to delete this?','اسحب الصورة داخل الغلاف لتحريكها (يمين/يسار/فوق/تحت)، وكبّر أو صغّر:':'Drag the image inside the cover to reposition it, and zoom in or out:'});
+Object.assign(EN,{'الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
 const ENK=Object.keys(EN).sort((a,b)=>b.length-a.length);
 function trs(t){const tt=t.trim();if(tt&&ENX[tt]!==undefined)return t.replace(tt,ENX[tt]);if(tt&&SMX[tt]!==undefined)return t.replace(tt,SMX[tt]);for(const[a,b]of ENR)t=t.replace(a,b);for(const k of ENK)if(t.includes(k))t=t.split(k).join(EN[k]);if(/[\u0600-\u06FF]/.test(t))t=t.replace(SMRE,m=>SMAP[m]||m);return t.replace(/؟/g,'?')}
 const trSkip=n=>{for(;n;n=n.parentNode){if(/^(TEXTAREA|SCRIPT|STYLE)$/.test(n.nodeName||''))return true;if(n.isContentEditable||(n.getAttribute&&n.getAttribute('contenteditable')==='true'))return true}return false};
@@ -811,7 +865,7 @@ function prRepY(T,H){const P=prP(),today=ymd(new Date());
 /* ---------- القائمة الجانبية ---------- */
 const prof=()=>S.profile||(S.profile={name:'',age:'',gender:''});
 function menu(){const P=prof(),R=(f,i,t,x)=>`<a onclick="${f}"><span class="di">${svg(i)}</span><div><b>${t}</b><small>${x}</small></div><span class="ch">${svg('chev')}</span></a>`;
- $('#sh').innerHTML=`<div class="sh dr" onclick="if(event.target==this)$('#sh').innerHTML=''"><aside><div class="dh"><div class="av">${avatar()}</div><b style="font-size:18px">${esc(P.name||(fu&&fu.displayName)||'ضيف')}</b><div style="font-size:13px;opacity:.85;margin-top:3px" dir="ltr">${fu?esc(fu.email||''):'غير مسجّل الدخول'}</div></div>
+ $('#sh').innerHTML=`<div class="sh dr" onclick="if(event.target==this)$('#sh').innerHTML=''"><aside><div class="dh"><div class="av">${avatar()}</div><b style="font-size:18px">${esc(P.name||(fu&&fu.displayName)||'ضيف')}</b><div style="font-size:13px;opacity:.85;margin-top:3px" dir="ltr">${fu?esc(fu.email||''):'غير مسجّل الدخول'}</div></div>${accBar()}
  <div class="dsec">الحساب والتنبيهات</div>${R("go2('se')",'user','معلومات الحساب','الملف الشخصي وتسجيل الدخول')}${R("go2('re')",'bell','الإشعارات','تذكيرات بمهامك وأوقاتها')}${R("go2('bk')",'download','النسخ الاحتياطي والتقارير','ملف على جهازك وتصدير PDF')}${R("go2('jz')",'calendar','الجداول','جداول المراجعة والحفظ')}
  <div class="dsec">الحفظ والمراجعة</div>${R("go2('st')",'chart','الإحصائيات','تقدّمك وسجل جلساتك')}
  <div class="dsec">المسابقات</div>${R("go2('ct')",'trophy','المتسابقون','الأجزاء والتايمر والإحصائيات')}
@@ -869,7 +923,7 @@ function settings(){const P=prof(),E=pe.on,u=fu;
  ${row('users','الجنس',E?`<select onchange="prof().gender=this.value;save()" style="margin:0;padding:6px 8px"><option value="">—</option><option ${P.gender=='ذكر'?'selected':''}>ذكر</option><option ${P.gender=='أنثى'?'selected':''}>أنثى</option></select>`:(P.gender||'—'))}
  ${row('globe','بلد الإقامة',E?`<button class="g" onclick="ctrySheet()" style="padding:6px 10px">${cName(P.country)} ▾</button>`:cName(P.country))}
  ${row('calendar','عضو منذ',esc(S.since||'—'))}</div>
- <div class="ph">إعدادات الحساب</div><div class="pcard">
+ ${accCard()}<div class="ph">إعدادات الحساب</div><div class="pcard">
  ${u?act('lock',((u&&u.providerData||[]).some(x=>x.providerId==='password'))?'تغيير كلمة المرور':'إنشاء كلمة مرور','chPass()')+act('cloud','مزامنة البيانات','syncSheet()')+act('logout','تسجيل الخروج',"ask('تسجيل الخروج يمسح البيانات من هذا الهاتف وتبقى محفوظة في حسابك. متابعة؟',out,'نعم، اخرج')"):''}
  ${u?act('userx','حذف الحساب نهائياً',"typedAsk('حذف الحساب نهائياً','سيُحذف حسابك واسم المستخدم وكل بياناتك السحابية نهائياً ولا يمكن التراجع.','delAcc')",1):act('trash','حذف بياناتي من الجهاز',"typedAsk('حذف بيانات الجهاز','ستُحذف كل بياناتك المحفوظة في هذا الجهاز ولا يمكن التراجع.','wipe')",1)}</div>
  <div id="sm" style="padding:10px 24px;min-height:24px;font-size:14px">${esc(sm)}</div></div>`}
@@ -878,10 +932,12 @@ function acct(){
  return `<button class="g" onclick="aGoogle()" style="width:100%;margin:0 0 8px"><b>G</b> الدخول بحساب Google</button><div class="m" style="text-align:center">أو بالبريد / اسم المستخدم وكلمة المرور</div><input id="ae" type="text" placeholder="البريد الإلكتروني أو اسم المستخدم" dir="ltr" autocapitalize="off"><input id="au" type="text" placeholder="اسم المستخدم (عند إنشاء حساب جديد)" dir="ltr" autocapitalize="off"><input id="ap" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" dir="ltr"><div class="row"><button onclick="aIn()" style="flex:1">دخول</button><button class="g" onclick="aUp()" style="flex:1">إنشاء حساب</button></div><button class="g" onclick="aRs()" style="width:100%;margin-top:6px">نسيت كلمة المرور</button>`}
 function danger(){return fu?`<p class="m">يحذف حسابك وبياناتك السحابية نهائياً.</p><button class="r" style="width:100%" onclick="ask('حذف حسابك وكل بياناتك نهائياً؟ لا يمكن التراجع.',delAcc,'نعم، احذف حسابي')">حذف الحساب</button>`:`<p class="m">يحذف كل بياناتك المحفوظة في هذا الجهاز.</p><button class="r" style="width:100%" onclick="ask('حذف كل بياناتك من هذا الجهاز؟',wipe,'نعم، احذف')">حذف بياناتي من الجهاز</button>`}
 function wipe(){S=EMPTY();try{localStorage.removeItem('qmrm')}catch(e){}go('home')}
-async function delAcc(){
+async function delAcc(){const uid0=fu.uid;accQuiet=1;
  try{const un=prof().user;if(un){try{await fs.collection('usernames').doc(un).delete()}catch(x){}}await fs.collection('users').doc(fu.uid).delete();await fu.delete()}
- catch(e){tab='se';draw();sync(e.code=='auth/requires-recent-login'?'⚠️ لأمانك: سجّل الخروج ثم ادخل من جديد وأعد حذف الحساب':'⚠️ تعذّر الحذف ('+(e.code||e.message)+')');return}
- wipe()}
+ catch(e){accQuiet=0;tab='se';draw();sync(e.code=='auth/requires-recent-login'?'⚠️ لأمانك: سجّل الخروج ثم ادخل من جديد وأعد حذف الحساب':'⚠️ تعذّر الحذف ('+(e.code||e.message)+')');return}
+ accRemove(uid0);const o=accNext();
+ if(o){accQuiet=0;await accSwitch(o.uid,true);return}
+ fa=firebase.auth();fs=firebase.firestore();fu=null;wipe();accQuiet=0;if(!awG()){awMode='in';awShow()}}
 const TA={delAcc:()=>delAcc(),wipe:()=>wipe(),nbDelB:()=>nbDelB()};
 function typedAsk(t,m,fn){$('#sh').innerHTML=shW(`<b>${t}</b><div class="m" style="margin:6px 0">${m}</div><div class="m">اكتب كلمة (تأكيد) للمتابعة:</div><input id="tac" placeholder="تأكيد" autocomplete="off"><div id="tam" class="m" style="color:var(--bad)"></div><button class="r" onclick="typedDo('${fn}')">${t}</button><button class="g" onclick="$('#sh').innerHTML=''">إلغاء</button>`)}
 function typedDo(fn){if(!isConf($('#tac').value)){$('#tam').textContent='اكتب كلمة: تأكيد';return}$('#sh').innerHTML='';TA[fn]()}
@@ -908,7 +964,7 @@ function awShow(){const a=document.getElementById('aw');if(!a)return;const up=aw
  <div class="awor"><span>أو</span></div>
  <button class="awg" onclick="awGoogle()">${AWI.g}<span>الدخول بحساب Google</span></button>
  <div class="awl">${up?'<span></span>':'<a onclick="awRs()">نسيت كلمة المرور</a>'}<a onclick="awSet('${up?'in':'up'}')">${up?'لدي حساب':'إنشاء حساب'}</a></div></div>
- <div class="awfoot"><a onclick="awGuest()">المتابعة بدون حساب</a><a onclick="setLang('${en?'ar':'en'}')">🌐 ${en?'العربية':'English'}</a></div></div>`}
+ <div class="awfoot">${awAdd?'<a onclick="accCancelAdd()">إلغاء</a>':'<a onclick="awGuest()">المتابعة بدون حساب</a>'}<a onclick="setLang('${en?'ar':'en'}')">🌐 ${en?'العربية':'English'}</a></div></div>`}
 function awSet(m){awKeep();awMode=m;sync('');awShow()}
 function awEye(){const i=document.getElementById('awp');if(i)i.type=i.type==='password'?'text':'password'}
 async function awIn(){await doIn(awGv('awe').trim(),awGv('awp'))}
