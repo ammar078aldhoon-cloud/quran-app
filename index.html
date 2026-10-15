@@ -182,7 +182,14 @@ let S={tasks:[],logs:[],alarms:[],mist:[],skipFri:true,id:1};
 try{Object.assign(S,JSON.parse(localStorage.getItem('qmrm')||'{}'))}catch(e){}
 try{const _l=localStorage.getItem('qmrm_lang');if(_l)S.lang=_l}catch(e){}
 const BOOT_LANG=S.lang=='en'?'en':'ar';S.lang=BOOT_LANG;
-const save=()=>{S._u=Date.now();try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){if(!fu)try{synBar('مساحة التخزين في هذا الجهاز ممتلئة، لم تُحفظ آخر تغييراتك. قلّل عدد الصور أو سجّل الدخول للحفظ السحابي.',1)}catch(x){}}push()};
+/* نسخة ثانية في IndexedDB: مساحتها كبيرة ولا تمتلئ مثل localStorage (حدّه ~5MB) فلا تضيع الدفاتر ذات الصور */
+const idb=(()=>{let p=null;const open=()=>p||(p=new Promise((ok,no)=>{try{const r=indexedDB.open('qmrm_db',1);r.onupgradeneeded=()=>r.result.createObjectStore('k');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}}));
+ const tx=async(m,f)=>{const d=await open();return new Promise((ok,no)=>{const t=d.transaction('k',m),q=f(t.objectStore('k'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error)})};
+ return{get:k=>tx('readonly',s=>s.get(k)),set:(k,v)=>tx('readwrite',s=>s.put(v,k)),del:k=>tx('readwrite',s=>s.delete(k))}})();
+let idbT=null,lsFail=0;
+const save=()=>{S._u=Date.now();lsFail=0;try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){lsFail=1}
+ clearTimeout(idbT);idbT=setTimeout(()=>{idb.set('S',JSON.stringify(S)).catch(()=>{if(lsFail)try{synBar('تعذّر الحفظ على هذا الجهاز (المساحة ممتلئة). قلّل عدد الصور أو تأكد أن المزامنة السحابية تعمل.',1)}catch(x){}})},400);
+ push()};
 const $=s=>document.querySelector(s),ymd=d=>d.toLocaleDateString('en-CA'),hm=d=>d.toTimeString().slice(0,5);
 const hij=d=>d.toLocaleDateString(S.lang=='en'?'en-u-ca-islamic-umalqura':'ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -555,7 +562,7 @@ function adopt(cl,warn){
  if(extra){try{localStorage.setItem('qmrm_prev_'+fu.uid,JSON.stringify({at:Date.now(),s:S}))}catch(e){}}
  S=Object.assign(EMPTY(),cl);S._uid=fu.uid;S.lang=BOOT_LANG;migrate();
  try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}
- applyTheme();draw();
+ idb.set('S',JSON.stringify(S)).catch(()=>{});applyTheme();draw();
  if(extra){synBar('وُجدت بيانات على هذا الجهاز غير موجودة في السحابة. يمكنك استعادتها من الإعدادات ← استعادة بيانات الجهاز.',1);setTimeout(()=>synBar(''),15000)}}
 const editingNow=()=>{const a=document.activeElement;return !!a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.nodeName||''))};
 async function syncDown(){
@@ -571,7 +578,7 @@ function listen(){
  if(!fu||!fs)return;const uid=fu.uid;
  try{unsub=fs.collection('users').doc(uid).onSnapshot(sn=>{if(!fu||fu.uid!==uid||sn.metadata.hasPendingWrites)return;const c=sn.data();if(c&&(c.u||0)>(S._u||0))syncDown()},()=>{})}catch(e){}}
 async function pull(){
- try{const uid=fu.uid,c=await readCloud(uid);
+ try{await idbReady;const uid=fu.uid,c=await readCloud(uid);
   if(!fu||fu.uid!==uid)return;
   if(c){const cl=JSON.parse(c.d);
    if(S._uid!==uid||c.u>(S._u||0)){adopt(cl,1);sync('تم تحميل بياناتك من السحابة ☁️');listen();return}}
@@ -595,10 +602,10 @@ async function doUp(m,u,p){if(!m.includes('@')||!p){sync('⚠️ لإنشاء ح
  try{if(await unGet(u))throw{code:'username-taken'};await fa.createUserWithEmailAndPassword(m,p);await claimUn(u);sync('✅ تم إنشاء الحساب باسم المستخدم @'+u)}catch(e){er(e)}}
 async function aUp(){return doUp($('#ae').value.trim(),$('#au').value.trim().toLowerCase(),$('#ap').value)}
 async function doRs(id){if(!id){sync('⚠️ اكتب بريدك أو اسم المستخدم');return}if(busy)return;busy=1;sync('⏳ جارٍ إرسال الرابط...');
- try{const m=await resolveEmail(id);try{fa.languageCode='ar'}catch(e){}
-  try{const ms=await fa.fetchSignInMethodsForEmail(m);if(ms.length&&!ms.includes('password')){sync('ℹ️ هذا البريد مسجّل بواسطة Google فقط: ادخل بزر Google ثم أنشئ كلمة مرور من «إعدادات الحساب».');busy=0;return}}catch(e){}
+ try{const m=await resolveEmail(id);try{fa.languageCode='en'}catch(e){}
+  try{const ms=await fa.fetchSignInMethodsForEmail(m);if(ms.length&&!ms.includes('password')){sync('ℹ️ هذا البريد مسجّل بواسطة Google فقط: ادخل بزر Google ثم أنشئ كلمة مرور من «إعدادات الحساب».');try{fa.languageCode='ar'}catch(e){}busy=0;return}}catch(e){}
   await fa.sendPasswordResetEmail(m,{url:location.origin+location.pathname,handleCodeInApp:false});
-  sync('✅ أرسلنا الرابط إلى '+m+' — افحص صندوق الوارد وكذلك «الرسائل غير المرغوبة (Spam)»، وقد يتأخر دقائق.')}catch(e){er(e)}busy=0}
+  sync('✅ طُلب إرسال الرابط إلى '+m+' — افحص الوارد وكذلك «الرسائل غير المرغوبة (Spam)» وقد يتأخر دقائق. إذا لم يصل، فغالباً حسابك مسجّل بواسطة Google فقط: ادخل بزر Google ثم أنشئ كلمة مرور من «إعدادات الحساب».')}catch(e){er(e)}try{fa.languageCode='ar'}catch(e){}busy=0}
 async function aRs(){return doRs($('#ae').value.trim())}
 async function out(){
  clearTimeout(pt);pt=null;if(!(await pushNow(true))){tab='se';draw();sync('تعذّر رفع بياناتك، لم يتم الخروج ⚠️');return}
@@ -607,7 +614,7 @@ async function out(){
  accRemove(uid);const o=accNext();$('#sh').innerHTML='';
  if(o){accQuiet=0;await accSwitch(o.uid,true);return}
  fa=firebase.auth();fs=firebase.firestore();fu=null;
- S=EMPTY();try{localStorage.removeItem('qmrm');localStorage.removeItem('qmrm_guest');localStorage.removeItem('qmrm_acta')}catch(e){}
+ S=EMPTY();clearTimeout(idbT);idb.del('S').catch(()=>{});try{localStorage.removeItem('qmrm');localStorage.removeItem('qmrm_guest');localStorage.removeItem('qmrm_acta')}catch(e){}
  accQuiet=0;draw();awMode='in';awShow()}
 /* ---------- منتقي اللون الطيفي ---------- */
 const hsv2hex=(h,s,v)=>{const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1))};return'#'+[f(5),f(3),f(1)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('')};
@@ -965,6 +972,40 @@ async function chPassDo(){const a=$('#cpw').value,b=$('#cpw2').value,m=$('#cpm')
    try{await fu.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());await run(has)}catch(e2){m.textContent='⚠️ '+(ERR[e2.code]||e2.message||'تعذّر الحفظ');return}}
   else{m.textContent='⚠️ '+(ERR[e.code]||e.message||'تعذّر الحفظ');return}}
  $('#sh').innerHTML='';sync(has?'✅ تم تغيير كلمة المرور':'✅ أُضيفت كلمة مرور لحسابك، يمكنك الدخول بـ Google أو بالبريد/اسم المستخدم');draw()}
+/* ===== شاشة المزامنة واسترجاع البيانات ===== */
+function dtF(t){if(!t)return'—';try{return new Date(t).toLocaleString(S.lang=='en'?'en-GB':'ar-JO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return'—'}}
+const dStat=o=>({nb:(o.nbs||[]).length,td:(o.td||[]).length,lg:(o.logs||[]).length});
+async function syncSheet(){
+ if(!fu)return;
+ const L=dStat(S),kb=Math.max(1,Math.round(JSON.stringify(S).length/1024)),fmtKb=v=>v>=1024?(v/1024).toFixed(1)+' م.ب':v+' ك.ب';
+ const cell=(l,a,id)=>`<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd);align-items:center;font-size:14.5px"><span class="m">${l}</span><b style="text-align:center">${a}</b><b id="sc-${id}" style="text-align:center;color:var(--mut)">…</b></div>`;
+ $('#sh').innerHTML=shW(`<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><span style="width:46px;height:46px;border-radius:15px;background:color-mix(in srgb,var(--pri) 14%,transparent);color:var(--pri);display:flex;align-items:center;justify-content:center;flex:none"><span style="width:26px;height:26px;display:block">${svg('cloud')}</span></span><div style="min-width:0"><b style="font-size:18px;display:block">المزامنة واسترجاع البيانات</b><div class="m" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right">${esc(fu.email||prof().name||'')}</div></div></div>
+ <div id="sc-st" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,#2e7d32 12%,transparent);color:#2e7d32;font-size:14px;font-weight:600"><span style="width:9px;height:9px;border-radius:50%;background:#2e7d32;flex:none"></span><span>المزامنة التلقائية مفعّلة</span></div>
+ <div style="margin-top:14px;border:1px solid var(--bd);border-radius:16px;padding:4px 14px 0;background:var(--bg)">
+  <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd);font-size:13px;color:var(--mut);font-weight:700"><span></span><span style="text-align:center">هذا الجهاز</span><span style="text-align:center">حسابك</span></div>
+  ${cell('الدفاتر',L.nb,'nb')}${cell('المهمات',L.td,'td')}${cell('سجل المراجعة',L.lg,'lg')}${cell('الحجم',fmtKb(kb),'kb')}
+  <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;padding:10px 0;align-items:center;font-size:13px"><span class="m">آخر تحديث</span><b style="text-align:center;font-size:12.5px;line-height:1.5">${dtF(S._u)}</b><b id="sc-up" style="text-align:center;color:var(--mut);font-size:12.5px;line-height:1.5">…</b></div>
+ </div>
+ <div class="m" style="margin:12px 2px;line-height:1.7">تُرفع تغييراتك إلى حسابك تلقائياً وتتحدّث الأجهزة الأخرى من تلقاء نفسها. استخدم الاسترجاع إذا لم تجد بياناتك على هذا الجهاز.</div>
+ <button id="sc-rs" disabled style="opacity:.5;width:100%" onclick="syncRestore()">استرجاع بيانات الحساب</button>
+ ${prevGet()?'<button class="g" style="width:100%" onclick="restorePrev()">استعادة بيانات الجهاز السابقة</button>':''}
+ <button class="g" style="width:100%" onclick="$('#sh').innerHTML=''">إغلاق</button>`);
+ const set=(id,t)=>{const e=document.getElementById('sc-'+id);if(e){e.textContent=t;e.style.color='var(--tx)'}};
+ try{const c=await readCloud(fu.uid);
+  if(!c){set('nb','—');set('td','—');set('lg','—');set('kb','—');set('up','—');const st=document.getElementById('sc-st');if(st)st.lastElementChild.textContent='لا توجد نسخة في حسابك بعد، ستُرفع تلقائياً';return}
+  const o=JSON.parse(c.d),C=dStat(o);
+  set('nb',C.nb);set('td',C.td);set('lg',C.lg);set('kb',fmtKb(Math.max(1,Math.round(c.d.length/1024))));set('up',dtF(c.u));
+  const st=document.getElementById('sc-st');if(st){st.lastElementChild.textContent=c.u>(S._u||0)?'حسابك يحتوي على نسخة أحدث':c.u<(S._u||0)?'تعديلاتك الأخيرة قيد الرفع':'البيانات محدّثة ومتطابقة'}
+  const b=document.getElementById('sc-rs');if(b){b.disabled=false;b.style.opacity=1}
+ }catch(e){['nb','td','lg','kb','up'].forEach(i=>set(i,'؟'));const st=document.getElementById('sc-st');if(st)st.lastElementChild.textContent='تعذّر الاتصال بحسابك، حاول لاحقاً'}}
+function syncRestore(){
+ ask('سيتم استبدال بيانات هذا الجهاز ببيانات حسابك المحفوظة في السحابة. نحتفظ بنسخة من بيانات الجهاز الحالية لتتمكن من استعادتها لاحقاً.',async()=>{
+  try{const c=await readCloud(fu.uid);if(!c){toast('لا توجد نسخة في حسابك');return}
+   const cl=JSON.parse(c.d);let saved=false;
+   try{localStorage.setItem('qmrm_prev_'+fu.uid,JSON.stringify({at:Date.now(),s:S}));saved=true}catch(e){}
+   if(!saved&&localExtra(cl)){synBar('تعذّر حفظ نسخة احتياطية من بيانات الجهاز بسبب امتلاء المساحة، لذلك لم يتم الاسترجاع.',1);setTimeout(()=>synBar(''),9000);return}
+   adopt(cl,0);toast('تم استرجاع بيانات حسابك')
+  }catch(e){toast('تعذّر الاسترجاع، تأكد من الاتصال')}},'نعم، استرجع','إلغاء')}
 function settings(){const P=prof(),E=pe.on,u=fu;
  const row=(i,l,v,x)=>`<div class="prow"><span class="pi">${svg(i)}</span><span class="pl">${l}</span><span class="pv">${v}</span>${x||''}</div>`;
  const act=(i,l,f,bad)=>`<div class="prow act" onclick="${f}"><span class="pi" ${bad?'style="background:#e5393522;color:var(--bad)"':''}>${svg(i)}</span><span class="pl" ${bad?'style="color:var(--bad)"':''}>${l}</span><span class="ch">${svg('chev')}</span></div>`;
@@ -982,14 +1023,14 @@ function settings(){const P=prof(),E=pe.on,u=fu;
  ${row('globe','بلد الإقامة',E?`<button class="g" onclick="ctrySheet()" style="padding:6px 10px">${cName(P.country)} ▾</button>`:cName(P.country))}
  ${row('calendar','عضو منذ',esc(S.since||'—'))}</div>
  ${accCard()}<div class="ph">إعدادات الحساب</div><div class="pcard">
- ${u?act('lock',((u&&u.providerData||[]).some(x=>x.providerId==='password'))?'تغيير كلمة المرور':'إنشاء كلمة مرور','chPass()')+(prevGet()?act('reset','استعادة بيانات الجهاز السابقة','restorePrev()'):'')+act('logout','تسجيل الخروج',"ask('تسجيل الخروج يمسح البيانات من هذا الهاتف وتبقى محفوظة في حسابك. متابعة؟',out,'نعم، اخرج')"):''}
+ ${u?act('lock',((u&&u.providerData||[]).some(x=>x.providerId==='password'))?'تغيير كلمة المرور':'إنشاء كلمة مرور','chPass()')+act('cloud','المزامنة واسترجاع البيانات','syncSheet()')+act('logout','تسجيل الخروج',"ask('تسجيل الخروج يمسح البيانات من هذا الهاتف وتبقى محفوظة في حسابك. متابعة؟',out,'نعم، اخرج')"):''}
  ${u?act('userx','حذف الحساب نهائياً',"typedAsk('حذف الحساب نهائياً','سيُحذف حسابك واسم المستخدم وكل بياناتك السحابية نهائياً ولا يمكن التراجع.','delAcc')",1):act('trash','حذف بياناتي من الجهاز',"typedAsk('حذف بيانات الجهاز','ستُحذف كل بياناتك المحفوظة في هذا الجهاز ولا يمكن التراجع.','wipe')",1)}</div>
  <div id="sm" style="padding:10px 24px;min-height:24px;font-size:14px">${esc(sm)}</div></div>`}
 function acct(){
  if(!fbOK)return '<b>الحساب والمزامنة</b><p class="m">المزامنة السحابية غير مفعّلة في هذه النسخة. تعمل فقط على نسخة GitHub.</p>';
  return `<button class="g" onclick="aGoogle()" style="width:100%;margin:0 0 8px"><b>G</b> الدخول بحساب Google</button><div class="m" style="text-align:center">أو بالبريد / اسم المستخدم وكلمة المرور</div><input id="ae" type="text" placeholder="البريد الإلكتروني أو اسم المستخدم" dir="ltr" autocapitalize="off"><input id="au" type="text" placeholder="اسم المستخدم (عند إنشاء حساب جديد)" dir="ltr" autocapitalize="off"><input id="ap" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" dir="ltr"><div class="row"><button onclick="aIn()" style="flex:1">دخول</button><button class="g" onclick="aUp()" style="flex:1">إنشاء حساب</button></div><button class="g" onclick="aRs()" style="width:100%;margin-top:6px">نسيت كلمة المرور</button>`}
 function danger(){return fu?`<p class="m">يحذف حسابك وبياناتك السحابية نهائياً.</p><button class="r" style="width:100%" onclick="ask('حذف حسابك وكل بياناتك نهائياً؟ لا يمكن التراجع.',delAcc,'نعم، احذف حسابي')">حذف الحساب</button>`:`<p class="m">يحذف كل بياناتك المحفوظة في هذا الجهاز.</p><button class="r" style="width:100%" onclick="ask('حذف كل بياناتك من هذا الجهاز؟',wipe,'نعم، احذف')">حذف بياناتي من الجهاز</button>`}
-function wipe(){S=EMPTY();try{localStorage.removeItem('qmrm')}catch(e){}go('home')}
+function wipe(){S=EMPTY();clearTimeout(idbT);idb.del('S').catch(()=>{});try{localStorage.removeItem('qmrm')}catch(e){}go('home')}
 async function delAcc(){const uid0=fu.uid;accQuiet=1;
  try{const un=prof().user;if(un){try{await fs.collection('usernames').doc(un).delete()}catch(x){}}await fs.collection('users').doc(fu.uid).delete();await fu.delete()}
  catch(e){accQuiet=0;tab='se';draw();sync(e.code=='auth/requires-recent-login'?'⚠️ لأمانك: سجّل الخروج ثم ادخل من جديد وأعد حذف الحساب':'⚠️ تعذّر الحذف ('+(e.code||e.message)+')');return}
@@ -1038,10 +1079,19 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 function gsiLoad(){return gsiP||(gsiP=new Promise((ok,no)=>{if(window.google&&google.accounts&&google.accounts.id)return ok();const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=ok;s.onerror=()=>no(new Error('gsi'));document.head.appendChild(s)}))}
 async function gPopup(){const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});await fa.signInWithPopup(p)}
 let got=0;
+async function fedcmTry(){
+ if(!('IdentityCredential' in window)||!navigator.credentials)return null;
+ const t0=Date.now();
+ try{const c=await navigator.credentials.get({mediation:'required',identity:{mode:'active',providers:[{configURL:'https://accounts.google.com/gsi/fedcm.json',clientId:GCID}]}});
+  return c&&c.token?{token:c.token}:null}
+ catch(e){return{cancel:Date.now()-t0>1500}}}
 async function aGoogle(){if(busy)return;busy=1;got=0;sync('⏳ جارٍ فتح حسابات Google...');
  const fin=()=>{busy=0};
  try{
   if(!GCID){await gPopup();sync('✅ تم تسجيل الدخول');return fin()}
+  const fr=await fedcmTry();
+  if(fr&&fr.token){try{await fa.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(fr.token));sync('✅ تم تسجيل الدخول')}catch(e){er(e)}return fin()}
+  if(fr&&fr.cancel){sync('');return fin()}
   await gsiLoad();
   google.accounts.id.initialize({client_id:GCID,use_fedcm_for_prompt:true,cancel_on_tap_outside:false,auto_select:false,itp_support:true,
    callback:async r=>{got=1;try{await fa.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(r.credential));sync('✅ تم تسجيل الدخول')}catch(e){er(e)}fin()}});
@@ -1352,5 +1402,7 @@ async function nbLockSet(){const a=$('#nbp').value,b=$('#nbp2').value,q=qRead('n
 /* ---------- شريط التاريخ ---------- */
 function tickDate(){const d=new Date(),en=S.lang=='en';$('#dd').textContent=d.toLocaleDateString(en?'en-US':'ar-SY-u-nu-latn',{weekday:'short',day:'numeric',month:'short'});$('#dtm').textContent=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});const an=$('#dan');if(an){let nm='';try{if(fu)nm=accName(accList().find(x=>x.uid==fu.uid)||{uid:fu.uid,name:fu.displayName,email:fu.email})}catch(e){}if(an.textContent!==nm)an.textContent=nm}}
 tickDate();setInterval(tickDate,1000);
-migrate();if((S.profile||{}).country=='IL')S.profile.country='PS';S.since=S.since||ymd(new Date());if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));window.addEventListener('online',()=>{try{if(fu){pushNow();syncDown()}}catch(e){}});document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState==='hidden'){if(pt){clearTimeout(pt);pt=null;pushNow()}}else syncDown()}catch(e){}});window.addEventListener('focus',()=>{try{syncDown()}catch(e){}});applyTheme();initLang();draw();fbInit();remTick();bkCheck();
+migrate();if((S.profile||{}).country=='IL')S.profile.country='PS';S.since=S.since||ymd(new Date());if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));window.addEventListener('online',()=>{try{if(fu){pushNow();syncDown()}}catch(e){}});document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState==='hidden'){if(pt){clearTimeout(pt);pt=null;pushNow()}}else syncDown()}catch(e){}});window.addEventListener('focus',()=>{try{syncDown()}catch(e){}});const idbReady=(async()=>{try{const t=await idb.get('S');if(!t)return;const o=JSON.parse(t);
+ if((o._u||0)>(S._u||0)&&(!S._uid||!o._uid||o._uid===S._uid)){S=Object.assign(EMPTY(),o);S.lang=BOOT_LANG;migrate();try{localStorage.setItem('qmrm',JSON.stringify(S))}catch(e){}applyTheme();draw()}}catch(e){}})();
+applyTheme();initLang();draw();fbInit();remTick();bkCheck();
 </script></body></html>
