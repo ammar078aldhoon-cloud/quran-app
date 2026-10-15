@@ -1089,9 +1089,7 @@ async function aGoogle(){if(busy)return;busy=1;got=0;sync('⏳ جارٍ فتح �
  const fin=()=>{busy=0};
  try{
   if(!GCID){await gPopup();sync('✅ تم تسجيل الدخول');return fin()}
-  const fr=await fedcmTry();
-  if(fr&&fr.token){try{await fa.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(fr.token));sync('✅ تم تسجيل الدخول')}catch(e){er(e)}return fin()}
-  if(fr&&fr.cancel){sync('');return fin()}
+  /* الوضع المباشر (FedCM active) كان يفتح نافذة جوجل بخطأ response_type، لذلك نبدأ بنافذة اختيار الحساب العادية ثم نرجع للنافذة المنبثقة المجرّبة */
   await gsiLoad();
   google.accounts.id.initialize({client_id:GCID,use_fedcm_for_prompt:true,cancel_on_tap_outside:false,auto_select:false,itp_support:true,
    callback:async r=>{got=1;try{await fa.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(r.credential));sync('✅ تم تسجيل الدخول')}catch(e){er(e)}fin()}});
