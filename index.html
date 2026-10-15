@@ -1082,7 +1082,7 @@ let got=0;
 async function fedcmTry(){
  if(!('IdentityCredential' in window)||!navigator.credentials)return null;
  const t0=Date.now();
- try{const c=await navigator.credentials.get({mediation:'required',identity:{mode:'active',providers:[{configURL:'https://accounts.google.com/gsi/fedcm.json',clientId:GCID}]}});
+ try{const c=await navigator.credentials.get({mediation:'required',identity:{mode:'active',providers:[{configURL:'https://accounts.google.com/gsi/fedcm.json',clientId:GCID,params:{response_type:'id_token',scope:'email profile openid'}}]}});
   return c&&c.token?{token:c.token}:null}
  catch(e){return{cancel:Date.now()-t0>1500}}}
 async function aGoogle(){if(busy)return;busy=1;got=0;sync('⏳ جارٍ فتح حسابات Google...');
