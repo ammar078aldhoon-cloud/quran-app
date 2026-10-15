@@ -1037,14 +1037,23 @@ function gUnstick(){if(!busy)return;setTimeout(()=>{if(busy&&!fu){busy=0;sync(''
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')gUnstick()});window.addEventListener('focus',gUnstick);
 function gsiLoad(){return gsiP||(gsiP=new Promise((ok,no)=>{if(window.google&&google.accounts&&google.accounts.id)return ok();const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=ok;s.onerror=()=>no(new Error('gsi'));document.head.appendChild(s)}))}
 async function gPopup(){const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});await fa.signInWithPopup(p)}
-async function aGoogle(){if(busy)return;busy=1;sync('⏳ جارٍ فتح حسابات Google...');
+let got=0;
+async function aGoogle(){if(busy)return;busy=1;got=0;sync('⏳ جارٍ فتح حسابات Google...');
  const fin=()=>{busy=0};
  try{
   if(!GCID){await gPopup();sync('✅ تم تسجيل الدخول');return fin()}
   await gsiLoad();
   google.accounts.id.initialize({client_id:GCID,use_fedcm_for_prompt:true,cancel_on_tap_outside:false,auto_select:false,itp_support:true,
-   callback:async r=>{try{await fa.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(r.credential));sync('✅ تم تسجيل الدخول')}catch(e){er(e)}fin()}});
-  google.accounts.id.prompt(async n=>{try{if(n.isNotDisplayed()||n.isSkippedMoment()){if(busy){try{await gPopup();sync('✅ تم تسجيل الدخول')}catch(e){er(e)}fin()}}}catch(e){fin()}});
+   callback:async r=>{got=1;try{await fa.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(r.credential));sync('✅ تم تسجيل الدخول')}catch(e){er(e)}fin()}});
+  google.accounts.id.prompt(async n=>{try{
+   if(n.isDismissedMoment&&n.isDismissedMoment()){if(n.getDismissedReason()!=='credential_returned'&&!got){sync('');fin()}return}
+   if(n.isNotDisplayed()||n.isSkippedMoment()){
+    const why=(n.isNotDisplayed()?n.getNotDisplayedReason():n.getSkippedReason())||'';
+    if(/user_cancel|tap_outside|cancel_called|flow_restarted/.test(why)){sync('');fin();return}
+    await new Promise(r=>setTimeout(r,1500));
+    if(got||!busy)return;
+    try{await gPopup();sync('✅ تم تسجيل الدخول')}catch(e){er(e)}fin()}
+  }catch(e){fin()}});
   setTimeout(fin,20000)
  }catch(e){try{await gPopup();sync('✅ تم تسجيل الدخول')}catch(e2){er(e2)}fin()}}
 /* ---------- دفتر الملاحظات ---------- */
