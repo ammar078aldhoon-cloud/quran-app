@@ -109,7 +109,8 @@ header{background:linear-gradient(135deg,var(--h1),var(--h2));color:#fff;padding
 header button,header span,header .ic{color:#fff!important}
 #dtb,#dtb b{color:#fff!important;opacity:.92}
 .c,.pcard{border-color:transparent;box-shadow:0 2px 12px color-mix(in srgb,var(--pri) 12%,transparent)}.c{border-radius:var(--rd)}.pcard{border-radius:var(--rd)}
-main>*,.pg{animation:fi .28s ease both}@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+main>*,.pg{animation:fi .28s ease both}
+main.na>*{animation:none}@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 nav{border-top:0;border-radius:var(--rd) var(--rd) 0 0;box-shadow:0 -6px 20px color-mix(in srgb,var(--pri) 14%,transparent)}
 nav button.on{color:var(--pri);font-weight:700;position:relative}nav button.on::after{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 4px 4px;background:var(--gold)}
 button.g{border-color:color-mix(in srgb,var(--pri) 45%,transparent)}
@@ -199,9 +200,12 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 let tab='home',qz=null,rev=false,qn=0,qok=0,addDays=[0,1,2,3,4,6];
 const tabs=[['home','📖','اليوم'],['pr','🌙','الصلاة'],['td','✅','المهمات'],['ar','🗂','الأرشيف'],['nb','📓','الدفتر']];
 function go(t){if(t=='se'&&fbOK&&!fu){tab='home';draw();awMode='in';awShow();return}if(tab=='pv'&&t!='pv')pvOk=false;if(tab=='ar'&&t!='ar'){pvOk=false;arPvOpen=false}tab=t;draw()}
+let drawnTab=null;
 function draw(){
  $('#nav').innerHTML=tabs.map(([k,i,n])=>`<button class="${k==tab?'on':''}" onclick="go('${k}')">${i}<br>${n}</button>`).join('');
- $('#v').innerHTML={home:home,jz:jz,al:alarms,st:stats,ar:archive,nb:notebook,se:settings,ap:appearance,re:reminders,ct:conts,bk:backup,pr:prayer,td:todos,pv:privPage}[tab]();
+ const vm=$('#v'),chg=tab!==drawnTab,y0=window.scrollY;drawnTab=tab;vm.classList.toggle('na',!chg);
+ vm.innerHTML={home:home,jz:jz,al:alarms,st:stats,ar:archive,nb:notebook,se:settings,ap:appearance,re:reminders,ct:conts,bk:backup,pr:prayer,td:todos,pv:privPage}[tab]();
+ if(!chg&&Math.abs(window.scrollY-y0)>1){try{window.scrollTo({top:y0,behavior:'instant'})}catch(e){window.scrollTo(0,y0)}}
 }
 /* ---------- المهام ---------- */
 function due(){const e=new Date();e.setHours(23,59,59);return S.tasks.filter(t=>!t.arch&&new Date(t.next)<=e)}
@@ -209,7 +213,7 @@ function home(){
  const d=due();
  return `<div class="c" id="tbox">${tbox()}</div>
  <div class="c"><b>المراجعة والحفظ</b>
- <div class="row" style="flex-wrap:nowrap;gap:6px"><input id="ts" value="${esc(pkSum())}" placeholder="اكتب المهمة أو اختر: سور / أجزاء / صفحات" autocomplete="off" oninput="selClear()" style="flex:1;margin:0;min-width:0"><button type="button" onclick="pkOpen()" style="padding:10px 14px">${svg('plus')} اختيار</button></div><input id="tn" placeholder="اسم المهمة (اختياري)" autocomplete="off">
+ <div class="row" style="flex-wrap:nowrap;gap:6px"><input id="ts" value="${esc(pkTgt?'':pkSum())}" placeholder="اكتب المهمة أو اختر: سور / أجزاء / صفحات" autocomplete="off" oninput="selClear()" style="flex:1;margin:0;min-width:0"><button type="button" onclick="pkOpen()" style="padding:10px 14px">${svg('plus')} اختيار</button></div><input id="tn" placeholder="اسم المهمة (اختياري)" autocomplete="off">
  <div class="row"><input id="ta" type="number" placeholder="من آية" style="flex:1"><input id="tb" type="number" placeholder="إلى آية" style="flex:1"></div>
  <select id="tt"><option>حفظ</option><option>مراجعة</option></select>
  <input id="tc" type="text" autocomplete="off" placeholder="مدة التايمر (اكتبها أنت، مثال 25 أو 1:30)">
@@ -217,7 +221,7 @@ function home(){
  <button onclick="addTask()">إضافة</button>
  <label class="m"><input type="checkbox" style="width:auto" ${S.skipFri?'checked':''} onchange="S.skipFri=this.checked;save()"> استثناء يوم الجمعة من الجدولة</label></div>
  <div class="m" style="margin:0 16px">مهام اليوم (${d.length})</div>`+
- (d.map(t=>{const sub=jl(t),g=isG(t),op=tkOpen[t.id],m=t.tm;return `<div class="c"><div class="row" style="flex-wrap:nowrap;gap:10px;align-items:flex-start"><div style="flex:1;min-width:0"><b style="${t.mk==1?'text-decoration:line-through;color:var(--mut)':t.mk==2?'color:var(--bad)':''}">${g?esc(t.s):'سورة '+esc(t.s)}</b><div class="m">${t.type}${g?(sub&&sub!==t.s?' • '+esc(sub):''):' • '+t.a+'–'+t.b}</div></div><button class="g" style="padding:4px 10px" onclick="tkEdit(${t.id})">${svg('edit')}</button></div>
+ (d.map(t=>{const sub=jl(t),g=isG(t),op=tkOpen[t.id],m=t.tm;return `<div class="c"><div class="row" style="flex-wrap:nowrap;gap:10px;align-items:flex-start"><div style="flex:1;min-width:0"><b style="${t.mk==1?'text-decoration:line-through;color:var(--mut)':t.mk==2?'color:var(--bad)':''}">${g?esc(t.s):'سورة '+esc(t.s)}</b><div class="m">${t.type}${g?(sub&&sub!==t.s?' • '+esc(sub):''):' • '+t.a+'–'+t.b}</div></div><button class="g" style="padding:4px 10px" onclick="tkEdit(${t.id})">${svg('edit')}</button><button class="g" style="padding:4px 10px" onclick="tkUnits(${t.id})">تعديل الأجزاء</button></div>
   ${m?tmHtml(t):''}
   <div class="row" style="margin-top:8px">${m?'':`<button class="g" onclick="tmNew(${t.id})">⏱ تايمر</button>`}<button class="g" onclick="startT(${t.id})">${t.st?'⏱ بدأت '+hm(new Date(t.st)):'▶ ابدأ'}</button><button onclick="rate(${t.id})">✅ تم</button><button class="g" onclick="archT(${t.id},true)">📦</button><button class="g" onclick="ask('هل تريد حذف المهمة؟',()=>delT(${t.id}),'نعم، احذف')">🗑</button></div>
   <div class="m" style="margin-top:8px;cursor:pointer" onclick="tkOpen[${t.id}]=!tkOpen[${t.id}];draw()">${op?'▴':'▾'} تفاصيل المهمة</div>${op?`<div class="m" style="line-height:1.9">بدأت: ${t.st?dt(t.st):'لم تبدأ بعد'}<br>انتهت: لم تنتهِ بعد${m?`<br>الوقت الأصلي: ${hms(mOrig(m))} • المستغرق: ${hms(mUsed(m))}${mOver(m)?' • الزائد: '+hms(mOver(m)):''}`:''}</div>`:''}</div>`}).join('')||'<div class="c m">لا مهام اليوم، بارك الله فيك 🌿</div>');
@@ -236,7 +240,7 @@ let jSel=new Set();
 function sdList(m){return m=='s'?SUR.map((n,i)=>sdI(n,(i+1)+'. '+n)).join(''):'<div class="m" style="padding:6px 12px">اضغط لاختيار أكثر من جزء ✓</div>'+[...Array(30)].map((_,i)=>`<div onclick="sdJ(${i+1})" style="padding:10px 12px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between"><span>الجزء ${i+1}</span><b style="color:var(--pri)">${jSel.has(i+1)?'✓':''}</b></div>`).join('')}
 function sdJ(n){jSel.has(n)?jSel.delete(n):jSel.add(n);$('#ts').value=[...jSel].sort((a,b)=>a-b).map(x=>'الجزء '+x).join('، ');$('#sli').innerHTML=sdList('j')}
 function sdM(m){$('#sli').innerHTML=sdList(m);$('#m_s').classList.toggle('on',m=='s');$('#m_j').classList.toggle('on',m=='j')}
-function addTask(){const typed=$('#ts').value.trim(),nm=($('#tn')||{value:''}).value.trim(),any=pkAny();if(!typed&&!any)return;
+function addTask(){if(pkTgt){selClear();pkTgt=''}const typed=$('#ts').value.trim(),nm=($('#tn')||{value:''}).value.trim(),any=pkAny();if(!typed&&!any)return;
  const js=[...pkJ].sort((a,b)=>a-b),ts=parseT($('#tc').value)||0;
  const t={id:S.id++,s:any?(nm||pkSum()):(nm?nm+' — '+typed:typed),j:0,tm:mkT(ts),a:+$('#ta').value||1,b:+$('#tb').value||1,type:$('#tt').value,stage:0,next:new Date().toISOString()};
  if(any){t.g=1;if(pkS.size)t.sur=[...pkS];if(js.length==1&&!pkS.size&&!pkP.size)t.j=js[0];else if(js.length)t.js=js;if(pkP.size)t.pg=[...pkP].sort((a,b)=>a-b)}
@@ -265,7 +269,10 @@ function pkRender(){$('#sh').innerHTML=shW(`<b>اختيار المهمة</b><inp
 function pkList(){const l=$('#pkl');if(l)l.innerHTML=pkItems();const c=$('#pkc');if(c)c.textContent='تم ('+(pkS.size+pkJ.size+pkP.size)+')'}
 function pkTg(k,v){const st=k=='s'?pkS:k=='j'?pkJ:pkP,key=k=='s'?v:+v;st.has(key)?st.delete(key):st.add(key);pkList()}
 function pkRange(){const a=Math.max(1,+$('#pka').value||0),b=Math.min(604,+$('#pkb').value||a);if(!a)return;for(let i=Math.min(a,b);i<=Math.max(a,b);i++)pkP.add(i);pkList()}
-function pkDone(){$('#sh').innerHTML='';if(pkTgt=='cn'){ctDraft.juz=pkUnits();selClear();pkTgt='';draw();return}if(pkTgt&&pkTgt[0]=='c'){const c=ctG(+pkTgt.slice(1)),u=pkUnits(),old=new Set(c.juz);c.heard=c.heard.filter(x=>u.includes(x)).concat(u.filter(x=>!old.has(x)));c.juz=u;selClear();pkTgt='';save();draw();return}const e=$('#ts');if(e)e.value=pkSum()}
+function tkUnits(id){const t=tkG(id);if(!t)return;pkTgt='k'+id;selClear();(t.sur||[]).forEach(x=>pkS.add(x));(t.js||(t.j?[t.j]:[])).forEach(n=>pkJ.add(+n));(t.pg||[]).forEach(n=>pkP.add(+n));pkQ='';pkRender()}
+function pkDone(){$('#sh').innerHTML='';
+if(pkTgt&&pkTgt[0]=='k'){const t=tkG(+pkTgt.slice(1));pkTgt='';if(t&&pkAny()){const auto=isG(t)&&!t.nm,js=[...pkJ].sort((a,b)=>a-b);delete t.sur;delete t.js;delete t.pg;t.j=0;t.g=1;if(pkS.size)t.sur=[...pkS];if(js.length==1&&!pkS.size&&!pkP.size)t.j=js[0];else if(js.length)t.js=js;if(pkP.size)t.pg=[...pkP].sort((a,b)=>a-b);if(auto)t.s=pkSum();save()}selClear();draw();return}
+if(pkTgt=='cn'){ctDraft.juz=pkUnits();selClear();pkTgt='';draw();return}if(pkTgt&&pkTgt[0]=='c'){const c=ctG(+pkTgt.slice(1)),u=pkUnits(),old=new Set(c.juz);c.heard=c.heard.filter(x=>u.includes(x)).concat(u.filter(x=>!old.has(x)));c.juz=u;selClear();pkTgt='';save();draw();return}const e=$('#ts');if(e)e.value=pkSum()}
 
 function startT(id){const t=tkG(id),m=t.tm;if(!t.st)t.st=new Date().toISOString();if(m&&!m.run&&!mStart(m,parseT(($('#tmi'+id)||{}).value)))toast('اكتب مدة التايمر لتشغيل العدّاد');save();draw()}
 function delT(id){S.tasks=S.tasks.filter(x=>x.id!=id);save();draw()}
@@ -683,7 +690,7 @@ Object.assign(EN,{"ضع ✓ أو ✗ على المهمة فتنتقل إلى ا�
 Object.assign(ENX,{'الصلاة':'Prayer'});Object.assign(EN,{'الحفظ والمراجعة':'Memorization & review','جداول المراجعة والحفظ':'Review and memorization schedules'});
 Object.assign(ENX,{'الدفتر':'Notebook'});Object.assign(EN,{'تقدّمك وسجل جلساتك':'Your progress and session history'});
 Object.assign(EN,{'مزامنة البيانات':'Sync data','اختر طريقة المزامنة مع حسابك.':'Choose how to sync with your account.','تلقائية':'Automatic','يدوية':'Manual','تُرفع تغييراتك إلى حسابك تلقائياً بعد كل تعديل.':'Your changes are uploaded to your account automatically after every edit.','لا تُرفع التغييرات إلا عند ضغط «مزامنة الآن».':'Changes are only uploaded when you tap “Sync now”.','مزامنة الآن':'Sync now','هل تريد الحذف؟':'Do you want to delete this?','اسحب الصورة داخل الغلاف لتحريكها (يمين/يسار/فوق/تحت)، وكبّر أو صغّر:':'Drag the image inside the cover to reposition it, and zoom in or out:'});
-Object.assign(EN,{'هل تريد الاسترجاع؟':'Do you want to restore it?','تم إرسال رسالة إلى':'Message sent to','الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
+Object.assign(EN,{'هل تريد الاسترجاع؟':'Do you want to restore it?','↕ ترتيب':'↕ Reorder','تم إرسال رسالة إلى':'Message sent to','الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
 const ENK=Object.keys(EN).sort((a,b)=>b.length-a.length);
 function trs(t){const tt=t.trim();if(tt&&ENX[tt]!==undefined)return t.replace(tt,ENX[tt]);if(tt&&SMX[tt]!==undefined)return t.replace(tt,SMX[tt]);if(tt&&EN[tt]!==undefined)return t.replace(tt,EN[tt]);for(const[a,b]of ENR)t=t.replace(a,b);for(const k of ENK)if(t.includes(k))t=t.split(k).join(EN[k]);if(/[\u0600-\u06FF]/.test(t))t=t.replace(SMRE,m=>SMAP[m]||m);return t.replace(/؟/g,'?')}
 const trSkip=n=>{for(;n;n=n.parentNode){if(/^(TEXTAREA|SCRIPT|STYLE)$/.test(n.nodeName||''))return true;if(n.getAttribute&&n.getAttribute('data-notr')!==null)return true;if(n.isContentEditable||(n.getAttribute&&n.getAttribute('contenteditable')==='true'))return true}return false};
@@ -719,9 +726,13 @@ function reminders(){return `<div class="row sp" style="padding:4px 14px"><b sty
 /* ---------- قائمة المهمات (تبويب مستقل) + المهام الخاصة ---------- */
 const tdL=()=>S.td=S.td||[];
 const tdItem=(x,mk,del)=>`<div class="row" style="flex-wrap:nowrap;padding:8px 0;border-top:1px solid var(--bd)">${mk2(x.s||0,`${mk}(${x.id},1)`,`${mk}(${x.id},2)`)}${tdBadge(mk,x.id)}<span style="flex:1;${x.s==1?'text-decoration:line-through;color:var(--mut)':x.s==2?'color:var(--bad)':''}">${esc(x.t)}</span><button class="g" style="padding:2px 9px" onclick="ask('هل تريد حذف المهمة؟',()=>${del}(${x.id}),'نعم، احذف')">×</button></div>`;
+let tdOrd=false;
+const tdItemO=(x,i,n)=>`<div class="row" data-tid="${x.id}" style="flex-wrap:nowrap;padding:8px 0;border-top:1px solid var(--bd)"><span style="flex:1">${esc(x.t)}</span><button class="g" style="padding:2px 12px" ${i==0?'disabled':''} onclick="tdMv(${x.id},-1)">▲</button><button class="g" style="padding:2px 12px" ${i==n-1?'disabled':''} onclick="tdMv(${x.id},1)">▼</button></div>`;
+function tdMv(id,d){const L=tdL(),i=L.findIndex(y=>y.id==id),j=i+d;if(i<0||j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];save();const old={};document.querySelectorAll('[data-tid]').forEach(r=>old[r.dataset.tid]=r.getBoundingClientRect().top);draw();
+ document.querySelectorAll('[data-tid]').forEach(r=>{const dy=(old[r.dataset.tid]||0)-r.getBoundingClientRect().top;if(dy){r.style.transition='none';r.style.transform='translateY('+dy+'px)';r.getBoundingClientRect();r.style.transition='transform .25s ease';r.style.transform=''}})}
 const tdForm=(add,id)=>`<div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="${id}" placeholder="اكتب مهمة جديدة" autocomplete="off" onkeydown="if(event.key==='Enter')${add}()" style="flex:1;margin:0;min-width:0"><button onclick="${add}()">${svg('plus')}</button></div>`;
 function todos(){const T=tdL(),ok=T.filter(x=>x.s==1).length,no=T.filter(x=>x.s==2).length;
- return `<div class="row sp" style="padding:4px 14px"><b style="font-size:18px">قائمة المهمات</b><span class="m">${T.length} مهمة • في الأرشيف ${(S.tda||[]).length}</span></div><div class="c">${T.map(x=>tdItem(x,'tdMk','tdDel')).join('')||'<div class="m">لا مهام بعد، أضف مهمتك الأولى</div>'}${tdForm('tdAdd','tdi')}</div><div class="m" style="padding:0 18px 8px">ضع ✓ أو ✗ على المهمة فتنتقل إلى الأرشيف بعد 5 ثوانٍ (اضغط العلامة نفسها لإلغاء)، ومنه تستطيع استرجاعها.</div>${privCard()}`}
+ return `<div class="row sp" style="padding:4px 14px"><b style="font-size:18px">قائمة المهمات</b><span class="row" style="gap:8px"><span class="m">${T.length} مهمة • في الأرشيف ${(S.tda||[]).length}</span>${T.length>1?`<button class="g" style="padding:4px 12px" onclick="tdOrd=!tdOrd;draw()">${tdOrd?'تم':'↕ ترتيب'}</button>`:''}</span></div><div class="c">${T.map((x,i)=>tdOrd&&T.length>1?tdItemO(x,i,T.length):tdItem(x,'tdMk','tdDel')).join('')||'<div class="m">لا مهام بعد، أضف مهمتك الأولى</div>'}${tdForm('tdAdd','tdi')}</div><div class="m" style="padding:0 18px 8px">ضع ✓ أو ✗ على المهمة فتنتقل إلى الأرشيف بعد 5 ثوانٍ (اضغط العلامة نفسها لإلغاء)، ومنه تستطيع استرجاعها.</div>${privCard()}`}
 function tdAdd(){const v=$('#tdi').value.trim();if(!v)return;tdL().push({id:S.id++,t:v,s:0,c:Date.now()});save();draw()}
 const tdCd={};
 const tdBadge=(mk,id)=>{const c=tdCd[mk+id];return c?`<span class="tkc" id="tdc${mk+id}">${c.n}</span>`:''};
