@@ -1426,7 +1426,7 @@ function bbStep(){
  if(tab!=='home'){go('home');return true}
  ask('هل تريد الخروج من التطبيق؟',bbQuit,'نعم، اخرج','لا، ابقَ');return true}
 function bbInit(){if(!(window.history&&history.pushState&&window.addEventListener))return;try{history.replaceState({qmrm:0},'')}catch(e){}
- const arm=()=>{window.removeEventListener('pointerdown',arm,true);bbArm()};window.addEventListener('pointerdown',arm,true);
+ const evs=['pointerup','click','touchend','keydown'];const arm=()=>{try{if(navigator.userActivation&&!navigator.userActivation.hasBeenActive)return}catch(e){}evs.forEach(t=>window.removeEventListener(t,arm,true));bbArm()};evs.forEach(t=>window.addEventListener(t,arm,true));
  window.addEventListener('popstate',()=>{if(bbExit||!bbArmed)return;bbArmed=false;try{bbStep()}catch(e){}bbArm()})}
-applyTheme();initLang();draw();fbInit();remTick();bkCheck();bbInit();
+applyTheme();initLang();draw();try{bbInit()}catch(e){}fbInit();remTick();bkCheck();
 </script></body></html>
