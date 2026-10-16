@@ -223,7 +223,7 @@ function home(){
  <div class="m" style="margin:0 16px">مهام اليوم (${d.length})</div>`+
  (d.map(t=>{const sub=jl(t),g=isG(t),op=tkOpen[t.id],m=t.tm;return `<div class="c"><div class="row" style="flex-wrap:nowrap;gap:10px;align-items:flex-start"><div style="flex:1;min-width:0"><b style="${t.mk==1?'text-decoration:line-through;color:var(--mut)':t.mk==2?'color:var(--bad)':''}">${g?esc(t.s):'سورة '+esc(t.s)}</b><div class="m">${t.type}${g?(sub&&sub!==t.s?' • '+esc(sub):''):' • '+t.a+'–'+t.b}</div></div><button class="g" style="padding:4px 10px" onclick="tkEdit(${t.id})">${svg('edit')}</button><button class="g" style="padding:4px 10px" onclick="tkUnits(${t.id})">تعديل الأجزاء</button></div>
   ${m?tmHtml(t):''}
-  <div class="row" style="margin-top:8px">${m?'':`<button class="g" onclick="tmNew(${t.id})">⏱ تايمر</button>`}<button class="g" onclick="startT(${t.id})">${t.st?'⏱ بدأت '+hm(new Date(t.st)):'▶ ابدأ'}</button><button onclick="rate(${t.id})">✅ تم</button><button class="g" onclick="archT(${t.id},true)">📦</button><button class="g" onclick="ask('هل تريد حذف المهمة؟',()=>delT(${t.id}),'نعم، احذف')">🗑</button></div>
+  <div class="row" style="margin-top:8px">${m?'':`<button class="g" onclick="tmNew(${t.id})">⏱ تايمر</button>`}<button class="g" onclick="startT(${t.id})">${t.st?'⏱ بدأت '+hm(new Date(t.st)):'▶ ابدأ'}</button>${t.st?`<button class="g" onclick="tkRs(${t.id})">↺ البداية</button>`:''}<button onclick="rate(${t.id})">✅ تم</button><button class="g" onclick="archT(${t.id},true)">📦</button><button class="g" onclick="ask('هل تريد حذف المهمة؟',()=>delT(${t.id}),'نعم، احذف')">🗑</button></div>
   <div class="m" style="margin-top:8px;cursor:pointer" onclick="tkOpen[${t.id}]=!tkOpen[${t.id}];draw()">${op?'▴':'▾'} تفاصيل المهمة</div>${op?`<div class="m" style="line-height:1.9">بدأت: ${t.st?dt(t.st):'لم تبدأ بعد'}<br>انتهت: لم تنتهِ بعد${m?`<br>الوقت الأصلي: ${hms(mOrig(m))} • المستغرق: ${hms(mUsed(m))}${mOver(m)?' • الزائد: '+hms(mOver(m)):''}`:''}</div>`:''}</div>`}).join('')||'<div class="c m">لا مهام اليوم، بارك الله فيك 🌿</div>');
 }
 const tkCd={};
@@ -240,11 +240,12 @@ let jSel=new Set();
 function sdList(m){return m=='s'?SUR.map((n,i)=>sdI(n,(i+1)+'. '+n)).join(''):'<div class="m" style="padding:6px 12px">اضغط لاختيار أكثر من جزء ✓</div>'+[...Array(30)].map((_,i)=>`<div onclick="sdJ(${i+1})" style="padding:10px 12px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between"><span>الجزء ${i+1}</span><b style="color:var(--pri)">${jSel.has(i+1)?'✓':''}</b></div>`).join('')}
 function sdJ(n){jSel.has(n)?jSel.delete(n):jSel.add(n);$('#ts').value=[...jSel].sort((a,b)=>a-b).map(x=>'الجزء '+x).join('، ');$('#sli').innerHTML=sdList('j')}
 function sdM(m){$('#sli').innerHTML=sdList(m);$('#m_s').classList.toggle('on',m=='s');$('#m_j').classList.toggle('on',m=='j')}
-function addTask(){if(pkTgt){selClear();pkTgt=''}const typed=$('#ts').value.trim(),nm=($('#tn')||{value:''}).value.trim(),any=pkAny();if(!typed&&!any)return;
+function addTask(){if(pkTgt){selClear();pkTgt=''}const typed=$('#ts').value.trim(),nm=($('#tn')||{value:''}).value.trim(),any=pkAny(),ra=$('#ta').value.trim(),rb=$('#tb').value.trim(),rng=!typed&&!any&&(ra||rb);if(!typed&&!any&&!rng)return;
+ const rl=ra&&rb?'من آية '+(+ra)+' إلى آية '+(+rb):ra?'من آية '+(+ra):'إلى آية '+(+rb);
  const js=[...pkJ].sort((a,b)=>a-b),ts=parseT($('#tc').value)||0;
- const t={id:S.id++,s:any?(nm||pkSum()):(nm?nm+' — '+typed:typed),j:0,tm:mkT(ts),a:+$('#ta').value||1,b:+$('#tb').value||1,type:$('#tt').value,stage:0,next:new Date().toISOString()};
+ const t={id:S.id++,s:any?(nm||pkSum()):rng?(nm?nm+' — '+rl:rl):(nm?nm+' — '+typed:typed),j:0,tm:mkT(ts),a:+$('#ta').value||1,b:+$('#tb').value||1,type:$('#tt').value,stage:0,next:new Date().toISOString()};
  if(any){t.g=1;if(pkS.size)t.sur=[...pkS];if(js.length==1&&!pkS.size&&!pkP.size)t.j=js[0];else if(js.length)t.js=js;if(pkP.size)t.pg=[...pkP].sort((a,b)=>a-b)}
- if(nm)t.nm=1;S.tasks.push(t);selClear();save();draw()}
+ if(rng)t.g=1;if(nm)t.nm=1;S.tasks.push(t);selClear();save();draw()}
 const isG=t=>t.j||t.js||t.g||t.sur||t.pg;
 const rngPg=a=>{a=[...a].sort((x,y)=>x-y);const o=[];for(let i=0;i<a.length;){let j=i;while(j+1<a.length&&a[j+1]==a[j]+1)j++;o.push(j>i?a[i]+'–'+a[j]:''+a[i]);i=j+1}return o.join(' و ')};
 const pgFmt=a=>{a=[...a];return a.length==1?'صفحة '+a[0]:'صفحات: '+rngPg(a)};
@@ -275,6 +276,7 @@ if(pkTgt&&pkTgt[0]=='k'){const t=tkG(+pkTgt.slice(1));pkTgt='';if(t&&pkAny()){co
 if(pkTgt=='cn'){ctDraft.juz=pkUnits();selClear();pkTgt='';draw();return}if(pkTgt&&pkTgt[0]=='c'){const c=ctG(+pkTgt.slice(1)),u=pkUnits(),old=new Set(c.juz);c.heard=c.heard.filter(x=>u.includes(x)).concat(u.filter(x=>!old.has(x)));c.juz=u;selClear();pkTgt='';save();draw();return}const e=$('#ts');if(e)e.value=pkSum()}
 
 function startT(id){const t=tkG(id),m=t.tm;if(!t.st)t.st=new Date().toISOString();if(m&&!m.run&&!mStart(m,parseT(($('#tmi'+id)||{}).value)))toast('اكتب مدة التايمر لتشغيل العدّاد');save();draw()}
+function tkRs(id){const t=tkG(id);if(!t)return;delete t.st;save();draw()}
 function delT(id){S.tasks=S.tasks.filter(x=>x.id!=id);save();draw()}
 function rate(id){$('#sh').innerHTML=`<div class="sh"><div><b>كيف كان أداؤك؟</b>
  <button onclick="done(${id},'mastered')">🟢 أتقنت تماماً</button><button onclick="done(${id},'light')">🟡 بحاجة لمراجعة خفيفة</button><button class="r" onclick="done(${id},'hard')">🔴 واجهت صعوبة</button><button class="g" onclick="$('#sh').innerHTML=''">إلغاء</button></div></div>`}
@@ -690,7 +692,7 @@ Object.assign(EN,{"ضع ✓ أو ✗ على المهمة فتنتقل إلى ا�
 Object.assign(ENX,{'الصلاة':'Prayer'});Object.assign(EN,{'الحفظ والمراجعة':'Memorization & review','جداول المراجعة والحفظ':'Review and memorization schedules'});
 Object.assign(ENX,{'الدفتر':'Notebook'});Object.assign(EN,{'تقدّمك وسجل جلساتك':'Your progress and session history'});
 Object.assign(EN,{'مزامنة البيانات':'Sync data','اختر طريقة المزامنة مع حسابك.':'Choose how to sync with your account.','تلقائية':'Automatic','يدوية':'Manual','تُرفع تغييراتك إلى حسابك تلقائياً بعد كل تعديل.':'Your changes are uploaded to your account automatically after every edit.','لا تُرفع التغييرات إلا عند ضغط «مزامنة الآن».':'Changes are only uploaded when you tap “Sync now”.','مزامنة الآن':'Sync now','هل تريد الحذف؟':'Do you want to delete this?','اسحب الصورة داخل الغلاف لتحريكها (يمين/يسار/فوق/تحت)، وكبّر أو صغّر:':'Drag the image inside the cover to reposition it, and zoom in or out:'});
-Object.assign(EN,{'هل تريد الاسترجاع؟':'Do you want to restore it?','↕ ترتيب':'↕ Reorder','تم إرسال رسالة إلى':'Message sent to','الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
+Object.assign(EN,{'هل تريد الاسترجاع؟':'Do you want to restore it?','↕ ترتيب':'↕ Reorder','↺ البداية':'↺ Reset start','تم إرسال رسالة إلى':'Message sent to','الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
 const ENK=Object.keys(EN).sort((a,b)=>b.length-a.length);
 function trs(t){const tt=t.trim();if(tt&&ENX[tt]!==undefined)return t.replace(tt,ENX[tt]);if(tt&&SMX[tt]!==undefined)return t.replace(tt,SMX[tt]);if(tt&&EN[tt]!==undefined)return t.replace(tt,EN[tt]);for(const[a,b]of ENR)t=t.replace(a,b);for(const k of ENK)if(t.includes(k))t=t.split(k).join(EN[k]);if(/[\u0600-\u06FF]/.test(t))t=t.replace(SMRE,m=>SMAP[m]||m);return t.replace(/؟/g,'?')}
 const trSkip=n=>{for(;n;n=n.parentNode){if(/^(TEXTAREA|SCRIPT|STYLE)$/.test(n.nodeName||''))return true;if(n.getAttribute&&n.getAttribute('data-notr')!==null)return true;if(n.isContentEditable||(n.getAttribute&&n.getAttribute('contenteditable')==='true'))return true}return false};
@@ -771,7 +773,7 @@ function ctList(C){const d=ctDraft;
   return `<div class="c"><div class="row sp"><b style="font-size:17px">${esc(c.name)}</b><span class="m">${c.fin?'✅ أنهى • '+fmt(c.el):(m.run?'يعمل...':'قيد المسابقة')}</span></div>
   <div class="m" style="margin-top:6px">الأجزاء — اضغط على الجزء لتحديد هل سمعه فعلاً</div><div>${c.juz.map(n=>`<span class="chip ${c.heard.includes(n)?'on':''}" onclick="ctHeard(${c.id},'${n}')">${n}</span>`).join('')}</div><div class="m">سمع ${c.heard.length} من ${c.juz.length} أجزاء</div>
   <div style="margin-top:8px;padding:8px;border:1px solid var(--bd);border-radius:12px"><div class="row sp" style="flex-wrap:nowrap"><button class="g" style="padding:6px 10px" onclick="ctAdj(${c.id},-1800)">−30</button><b id="ct${c.id}" style="font-size:28px;font-variant-numeric:tabular-nums;color:${mShow(m).red?'var(--bad)':'inherit'}">${mShow(m).t}</b><button class="g" style="padding:6px 10px" onclick="ctAdj(${c.id},1800)">+30</button><button onclick="ctToggle(${c.id})">${m.run?'⏸ إيقاف':'⏱ تشغيل'}</button><button class="g" onclick="ctReset(${c.id})">↺</button></div><div class="row" style="margin-top:6px;flex-wrap:nowrap;gap:6px"><input id="cti${c.id}" type="text" autocomplete="off" placeholder="اكتب المدة: 25 أو 1:30" onkeydown="if(event.key==='Enter')ctSet(${c.id})" style="flex:1;margin:0;min-width:0"><button class="g" style="padding:8px 12px" onclick="ctSet(${c.id})">تعيين</button></div></div>
-  <div class="row" style="margin-top:8px"><button class="g" onclick="ctStart(${c.id})">${c.s0?'⏱ بدأ '+hm(new Date(c.s0)):'▶ ابدأ'}</button><button class="g" style="flex:1" onclick="ctOpen[${c.id}]=!ctOpen[${c.id}];draw()">${open?'▴ إغلاق':'▾ تعديل الأجزاء'}</button><button style="flex:1" onclick="ctFinish(${c.id})">${c.fin?'↺ إعادة فتح':'✅ إنهاء'}</button><button class="g" onclick="ask('حذف المتسابق؟',()=>ctDel(${c.id}),'نعم، احذف')">🗑</button></div>
+  <div class="row" style="margin-top:8px"><button class="g" onclick="ctStart(${c.id})">${c.s0?'⏱ بدأ '+hm(new Date(c.s0)):'▶ ابدأ'}</button>${c.s0?`<button class="g" onclick="ctRs(${c.id})">↺ البداية</button>`:''}<button class="g" style="flex:1" onclick="ctOpen[${c.id}]=!ctOpen[${c.id}];draw()">${open?'▴ إغلاق':'▾ تعديل الأجزاء'}</button><button style="flex:1" onclick="ctFinish(${c.id})">${c.fin?'↺ إعادة فتح':'✅ إنهاء'}</button><button class="g" onclick="ask('حذف المتسابق؟',()=>ctDel(${c.id}),'نعم، احذف')">🗑</button></div>
   ${open?`<div class="row" style="margin-top:8px"><button class="g" style="flex:1" onclick="ctPick(${c.id})">${svg('plus')} تعديل الأجزاء / السور / الصفحات</button></div>`:''}</div>`}).join('')}
 function ctAdd(){const d=ctDraft;if(!d.name.trim()||!d.juz.length)return;const j=[...d.juz],dur=parseT(d.min)||0;
  S.cont.push({id:S.id++,name:d.name.trim(),juz:j,heard:[...j],tm:mkT(dur),fin:false,el:0,at:Date.now()});ctDraft={name:'',juz:[],min:''};save();draw()}
@@ -784,6 +786,7 @@ function ctSet(id){const c=ctG(id),v=parseT(($('#cti'+id)||{}).value);if(!(v>0))
 function ctAdj(id,d){mAdj(ctG(id).tm,d);save();draw()}
 function ctToggle(id){const c=ctG(id),m=c.tm;if(m.run)mPause(m);else{if(!mStart(m,parseT(($('#cti'+id)||{}).value))){toast('اكتب مدة التايمر أولاً');return}c.fin=false;c.s0=c.s0||Date.now()}save();draw()}
 function ctStart(id){const c=ctG(id),m=c.tm;if(!c.s0)c.s0=Date.now();if(!m.run){if(mStart(m,parseT(($('#cti'+id)||{}).value)))c.fin=false;else toast('اكتب مدة التايمر لتشغيل العدّاد')}save();draw()}
+function ctRs(id){const c=ctG(id);if(!c)return;c.s0=0;save();draw()}
 function ctReset(id){const c=ctG(id);mReset(c.tm);c.fin=false;c.el=0;c.s0=0;c.e0=0;save();draw()}
 function ctFinish(id){const c=ctG(id),m=c.tm;if(m.run)mPause(m);c.fin=true;c.el=Math.round(m.used||0);c.e0=Date.now();ctArch(c);save();draw();toast('انتقل المتسابق إلى الأرشيف')}
 function ctDetail(C){if(!C.length)return '<div class="c m">أضف متسابقين لتظهر المقارنة</div>';const G={};C.forEach(c=>(G[c.juz.length]=G[c.juz.length]||[]).push(c));const tt=ms=>ms?hm(new Date(ms)):'—',cs='style="padding:6px 4px;border-bottom:1px solid var(--bd);text-align:center;white-space:nowrap"';
@@ -1341,14 +1344,27 @@ function nbPaint(cv,i,live){const W=cv.W,dp=window.devicePixelRatio||1,H=cv.heig
  if(live&&live.rl&&live.p.length>1){const a=live.p[0],b=live.p[live.p.length-1];c.fillStyle='#000';c.font='12px sans-serif';c.fillText((Math.hypot((b[0]-a[0])*W,(b[1]-a[1])*W)/37.8).toFixed(1)+' cm',b[0]*W+6,b[1]*W-6)}
  if(cv._er&&nbDraw=='e'){c.beginPath();c.arc(cv._er[0]*W,cv._er[1]*W,nbSz.e/2,0,6.2832);c.strokeStyle='#888';c.lineWidth=1.5;c.stroke()}}
 const nbSegNear=(q,a,b,R)=>{const dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;let t=L2?((q[0]-a[0])*dx+(q[1]-a[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(q[0]-(a[0]+t*dx),q[1]-(a[1]+t*dy))<R};
-function nbErase(sk,x,y,rad,W,x1,y1){const a=[x,y],b=[x1===undefined?x:x1,y1===undefined?y:y1],R=rad/W,out=[],near=q=>nbSegNear(q,a,b,R);
- sk.forEach(s=>{const P=[];s.p.forEach((q,i)=>{if(i){const u=s.p[i-1],d=Math.hypot(q[0]-u[0],q[1]-u[1]),n=Math.ceil(d/(2/W));for(let k=1;k<n;k++)P.push([u[0]+(q[0]-u[0])*k/n,u[1]+(q[1]-u[1])*k/n])}P.push(q)});
-  if(!P.some(near)){out.push(s);return}
-  let run=[];const fl=()=>{if(run.length)out.push({...s,p:run});run=[]};P.forEach(q=>{if(near(q))fl();else run.push(q)});fl()});return out}
+const nbBBm=new WeakMap();
+function nbBox(s){let b=nbBBm.get(s);if(!b){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const q of s.p){if(q[0]<x0)x0=q[0];if(q[0]>x1)x1=q[0];if(q[1]<y0)y0=q[1];if(q[1]>y1)y1=q[1]}b=[x0,y0,x1,y1];nbBBm.set(s,b)}return b}
+const nbPad=(s,W)=>(s.sh?Math.max(12,s.w*5):s.w)/2/W;
+const nbPS=(q,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;let t=L2?((q[0]-a[0])*dx+(q[1]-a[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(q[0]-(a[0]+t*dx),q[1]-(a[1]+t*dy))};
+const nbSS=(p1,p2,q1,q2)=>{const o=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]),d1=o(q1,q2,p1),d2=o(q1,q2,p2),d3=o(p1,p2,q1),d4=o(p1,p2,q2);if(((d1>0&&d2<0)||(d1<0&&d2>0))&&((d3>0&&d4<0)||(d3<0&&d4>0)))return 0;return Math.min(nbPS(p1,q1,q2),nbPS(p2,q1,q2),nbPS(q1,p1,p2),nbPS(q2,p1,p2))};
+const nbMiss=(s,a,b,R,W)=>{const pad=nbPad(s,W),bb=nbBox(s);return bb[2]+pad<Math.min(a[0],b[0])-R||bb[0]-pad>Math.max(a[0],b[0])+R||bb[3]+pad<Math.min(a[1],b[1])-R||bb[1]-pad>Math.max(a[1],b[1])+R};
+/* مسح الخط كاملاً: يلمس أي جزء من الخط (بما فيه سُمكه) فيُحذف */
+function nbHit(s,a,b,R,W){if(nbMiss(s,a,b,R,W))return false;const RR=R+nbPad(s,W);if(s.p.length==1)return nbPS(s.p[0],a,b)<RR;for(let i=1;i<s.p.length;i++)if(nbSS(s.p[i-1],s.p[i],a,b)<RR)return true;return false}
+/* مسح تدريجي دقيق: يمسح بالضبط ما تحت دائرة الممحاة (مع حساب سُمك القلم) وبخطوات 1 بكسل */
+function nbErase(sk,x,y,rad,W,x1,y1){const a=[x,y],b=[x1===undefined?x:x1,y1===undefined?y:y1],R=rad/W,out=[];
+ sk.forEach(s=>{if(nbMiss(s,a,b,R,W)){out.push(s);return}
+  const RR=R+nbPad(s,W);if(!nbHit(s,a,b,R,W)){out.push(s);return}
+  const P=[];s.p.forEach((q,i)=>{if(i){const u=s.p[i-1],n=Math.ceil(Math.hypot(q[0]-u[0],q[1]-u[1])*W);for(let k=1;k<n;k++)P.push([u[0]+(q[0]-u[0])*k/n,u[1]+(q[1]-u[1])*k/n])}P.push(q)});
+  if(!P.some(q=>nbSegNear(q,a,b,RR))){out.push(s);return}
+  let run=[];const fl=()=>{if(run.length){let r=[run[0]],len=0;for(let i=1;i<run.length;i++){const l=r[r.length-1];if(Math.hypot((run[i][0]-l[0])*W,(run[i][1]-l[1])*W)>=2||i==run.length-1){len+=Math.hypot((run[i][0]-l[0])*W,(run[i][1]-l[1])*W);r.push(run[i])}}
+   if(!(s.p.length>1&&len<1.5))out.push({...s,p:r.map(q=>[+q[0].toFixed(4),+q[1].toFixed(4)])})}run=[]};
+  P.forEach(q=>{if(nbSegNear(q,a,b,RR))fl();else run.push(q)});fl()});return out}
 let _raf=0;
 function nbPaintLater(cv,i){if(typeof requestAnimationFrame!='function'){nbPaint(cv,i);return}if(_raf)return;_raf=requestAnimationFrame(()=>{_raf=0;nbPaint(cv,i)})}
 const nbNP=()=>Object.keys(nbP).length;
-function nbErAt(s,a,b){s.n.sk=nbEW?s.n.sk.filter(k=>!k.p.some(q=>nbSegNear(q,a,b,nbSz.e/2/s.cv.W))):nbErase(s.n.sk,a[0],a[1],nbSz.e/2,s.cv.W,b[0],b[1])}
+function nbErAt(s,a,b){const W=s.cv.W;s.n.sk=nbEW?s.n.sk.filter(k=>!nbHit(k,a,b,nbSz.e/2/W,W)):nbErase(s.n.sk,a[0],a[1],nbSz.e/2,W,b[0],b[1])}
 function nbPd(e,cv,i){e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(x){}nbP[e.pointerId]={x:e.clientX,y:e.clientY};const two=!!S.nbTwo;
  cv.onpointermove=ev=>nbMv(ev,cv);cv.onpointerup=cv.onpointercancel=ev=>nbUp(ev,cv);
  if(two&&nbNP()>=2){clearTimeout(nbTm);nbTm=0;nbCS=null;nbGestStart();return}
