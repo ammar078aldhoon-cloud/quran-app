@@ -277,7 +277,7 @@ function done(id,r){
  let nd=new Date(n.getTime()+(r=='hard'?1:L[nx])*864e5);if(S.skipFri&&nd.getDay()==5)nd=new Date(nd.getTime()+864e5);
  const tm=t.tm,us=tm?mUsed(tm):Math.max(1,Math.round((n-st)/1000));
  const snap=JSON.parse(JSON.stringify(t));snap.st=null;snap.mk=0;snap.next=new Date().toISOString();if(tm)snap.tm=mkT(mOrig(tm));
- (S.arc=S.arc||[]).push({id:S.id++,tid:id,name:t.s,sub:isG(t)?jl(t):'',r,st:st.toISOString(),en:n.toISOString(),us,ov:tm?mOver(tm):0,og:tm?mOrig(tm):0,mk:t.mk||0,tk:snap,lg:{t:id,date:ymd(n),time:hm(n)}});
+ (S.arc=S.arc||[]).push({id:S.id++,tid:id,ty:t.type,name:t.s,sub:isG(t)?jl(t):'',r,st:st.toISOString(),en:n.toISOString(),us,ov:tm?mOver(tm):0,og:tm?mOrig(tm):0,mk:t.mk||0,tk:snap,lg:{t:id,date:ymd(n),time:hm(n)}});
  if(tm)mReset(tm);t.mk=0;
  const fin=r=='mastered'&&t.type=='مراجعة'&&t.stage==3;
  S.tasks=S.tasks.filter(x=>x.id!=id);save();$('#sh').innerHTML='';draw()}
@@ -415,9 +415,10 @@ function arRestore(k,id){
  else if(k=='t'){const i=(S.tda||[]).findIndex(x=>x.id==id);if(i<0)return;const x=S.tda.splice(i,1)[0];x.s=0;x.at=0;tdL().push(x)}
  else{const P=pvD(),i=(P.arc||[]).findIndex(x=>x.id==id);if(i<0)return;const x=P.arc.splice(i,1)[0];x.s=0;x.at=0;P.items.push(x)}
  save();toast('تم الاسترجاع');draw()}
+const arTy=a=>a.ty||(a.tk&&a.tk.type)||((S.tasks||[]).find(x=>x.id==a.tid)||{}).type||'',arTyL=a=>{const y=arTy(a);return y=='حفظ'?'📖 حفظ':y=='مراجعة'?'🔁 مراجعة':''};
 function archive(){const iso=ms=>ms?new Date(ms).toISOString():'',rb=(k,id)=>`<div class="row" style="gap:8px"><button class="g" style="padding:5px 12px" onclick="arRestore('${k}',${id})">استرجاع</button><button class="r" style="padding:5px 12px" onclick="arDel('${k}',${id})">حذف</button></div>`;let body='';
  if(arSec=='d'){const A=(S.arc||[]).slice().reverse();
-  body=A.map(a=>{const b=BADGE[a.r]||['',''];return arCard('d'+a.id,esc(a.name),b[0]+' '+b[1],(a.sub?esc(a.sub)+' • ':'')+dt(a.en),`بدأت: ${dt(a.st)}<br>انتهت: ${dt(a.en)}<br>الوقت المستغرق: ${hms(a.us)}<br>الوقت الزائد: ${hms(a.ov||0)}<br>الوقت الأصلي: ${a.og?hms(a.og):'—'}`,rb('d',a.id))}).join('')||'<div class="c m">لا مهام مكتملة بعد. تظهر هنا كل مهمة تضغط عليها «تم».</div>';
+  body=A.map(a=>{const b=BADGE[a.r]||['',''];return arCard('d'+a.id,esc(a.name),b[0]+' '+b[1],(arTyL(a)?arTyL(a)+' • ':'')+(a.sub?esc(a.sub)+' • ':'')+dt(a.en),`بدأت: ${dt(a.st)}<br>انتهت: ${dt(a.en)}<br>الوقت المستغرق: ${hms(a.us)}<br>الوقت الزائد: ${hms(a.ov||0)}<br>الوقت الأصلي: ${a.og?hms(a.og):'—'}`,rb('d',a.id))}).join('')||'<div class="c m">لا مهام مكتملة بعد. تظهر هنا كل مهمة تضغط عليها «تم».</div>';
   const M=S.tasks.filter(t=>t.arch);if(M.length)body+='<div class="ph">مهام مؤرشفة يدوياً</div>'+M.map(t=>`<div class="c"><div class="row sp"><b>${esc(t.s)}</b><span class="row" style="gap:8px"><button class="g" style="padding:4px 10px" onclick="archT(${t.id},false)">استرجاع</button><button class="r" style="padding:4px 10px" onclick="arDel('m',${t.id})">حذف</button></span></div></div>`).join('')}
  else if(arSec=='c'){const C=(S.carc||[]).slice().sort((a,b)=>(b.e0||0)-(a.e0||0));
   body=C.map(c=>arCard('c'+c.id,esc(c.name),c.heard.length+' من '+c.juz.length+' أجزاء','الأجزاء: '+c.heard.map(uLbl).join('، '),`بدأ: ${c.s0?dt(iso(c.s0)):'—'}<br>انتهى: ${c.e0?dt(iso(c.e0)):'—'}<br>الوقت المستغرق: ${hms(c.el)}<br>الوقت الزائد: ${hms(mOver(c.tm))}<br>الوقت الأصلي: ${hms(mOrig(c.tm))}`,rb('c',c.id))).join('')||'<div class="c m">لا مسابقات منتهية بعد</div>'}
@@ -836,7 +837,7 @@ function repHtml(k,mode){const dx=mode=='docx',P=prof(),now=new Date(),AC=nbAcc(
  if(dx)return o.replace(/<div[^>]*>([\s\S]*?)<\/div>/g,(m,t)=>dxP(dxRun(stripT(t),{c:'666666',sz:18})));
  return o+`<div style="text-align:center;font-size:11px;color:#7a877d;margin-top:22px;padding-top:8px;border-top:1px solid #d6dcd8">أُنشئ بواسطة تطبيق مُثبِّت القرآن • ${ymd(now)}</div></div>`}
 function repTd(T,H){const L=(S.td||[]).concat(S.tda||[]),P=((S.pv||{}).items||[]).length;return L.length?H('قائمة المهمات')+T(['المهمة','الحالة','أُضيفت','أُنجزت'],L.map(x=>[esc(x.t),x.s==1?'✓ صح':x.s==2?'✗ غلط':'—',x.c?ymd(new Date(x.c)):'—',x.at?ymd(new Date(x.at)):'—']))+(P?'<div style="font-size:12px;color:#555">المهام الخاصة (محمية بكلمة سر) غير مضمّنة في التقرير.</div>':''):''}
-function repArc(T,H){const A=(S.arc||[]).slice().reverse();return A.length?H('أرشيف المراجعة اليومية')+T(['المهمة','التاريخ','المستغرق','الزائد','الأصلي'],A.map(a=>[esc(a.name),ymd(new Date(a.en))+' '+hm(new Date(a.en)),hms(a.us),hms(a.ov||0),a.og?hms(a.og):'—'])):''}
+function repArc(T,H){const A=(S.arc||[]).slice().reverse();return A.length?H('أرشيف المراجعة اليومية')+T(['المهمة','النوع','التاريخ','المستغرق','الزائد','الأصلي'],A.map(a=>[esc(a.name),arTy(a)||'—',ymd(new Date(a.en))+' '+hm(new Date(a.en)),hms(a.us),hms(a.ov||0),a.og?hms(a.og):'—'])):''}
 const dxLang=b=>{if(S.lang!=='en')return b;return b.replace(/(<w:t[^>]*>)([^<]*)(<\/w:t>)/g,(m,a,t,c)=>a+xe(trs(t.replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')))+c).replace(/<w:bidi\/>|<w:bidiVisual\/>|<w:rtl\/>/g,'')};
 function exportWord(k){dlBlob(docxFiles(dxLang(repHtml(k,'docx'))),'qmrm-report-'+k+'-'+ymd(new Date())+'.docx',DOCX_MIME);toast('تم حفظ ملف Word (docx)')}
 /* ---------- تصدير الدفتر (PDF / Word) بشكل مطابق للصفحة: الخطوط والألوان والتمييز والصور ---------- */
