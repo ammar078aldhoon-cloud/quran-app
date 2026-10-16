@@ -242,10 +242,11 @@ function addTask(){const typed=$('#ts').value.trim(),nm=($('#tn')||{value:''}).v
  if(any){t.g=1;if(pkS.size)t.sur=[...pkS];if(js.length==1&&!pkS.size&&!pkP.size)t.j=js[0];else if(js.length)t.js=js;if(pkP.size)t.pg=[...pkP].sort((a,b)=>a-b)}
  if(nm)t.nm=1;S.tasks.push(t);selClear();save();draw()}
 const isG=t=>t.j||t.js||t.g||t.sur||t.pg;
-const rngPg=a=>{a=[...a].sort((x,y)=>x-y);const o=[];for(let i=0;i<a.length;){let j=i;while(j+1<a.length&&a[j+1]==a[j]+1)j++;o.push(j>i?a[i]+'–'+a[j]:''+a[i]);i=j+1}return o.join('، ')};
-const jl=t=>[t.sur&&t.sur.length?'سور: '+t.sur.join('، '):'',t.js?'الأجزاء '+t.js.join('، '):(t.j&&t.s!=='الجزء '+t.j?'الجزء '+t.j:''),t.pg&&t.pg.length?'صفحات: '+rngPg(t.pg):''].filter(Boolean).join(' • ');
+const rngPg=a=>{a=[...a].sort((x,y)=>x-y);const o=[];for(let i=0;i<a.length;){let j=i;while(j+1<a.length&&a[j+1]==a[j]+1)j++;o.push(j>i?a[i]+'–'+a[j]:''+a[i]);i=j+1}return o.join(' و ')};
+const pgFmt=a=>{a=[...a];return a.length==1?'صفحة '+a[0]:'صفحات: '+rngPg(a)};
+const jl=t=>[t.sur&&t.sur.length?'سور: '+t.sur.join('، '):'',t.js?'الأجزاء '+t.js.join('، '):(t.j&&t.s!=='الجزء '+t.j?'الجزء '+t.j:''),t.pg&&t.pg.length?pgFmt(t.pg):''].filter(Boolean).join(' • ');
 const pkS=new Set(),pkJ=new Set(),pkP=new Set();let pkT='s',pkQ='';
-const pkSum=()=>[pkS.size?'سور: '+[...pkS].join('، '):'',pkJ.size?(pkJ.size==1&&!pkS.size&&!pkP.size?'الجزء '+[...pkJ][0]:'الأجزاء '+[...pkJ].sort((a,b)=>a-b).join('، ')):'',pkP.size?'صفحات: '+rngPg(pkP):''].filter(Boolean).join(' • ');
+const pkSum=()=>[pkS.size?'سور: '+[...pkS].join('، '):'',pkJ.size?(pkJ.size==1&&!pkS.size&&!pkP.size?'الجزء '+[...pkJ][0]:'الأجزاء '+[...pkJ].sort((a,b)=>a-b).join('، ')):'',pkP.size?pgFmt(pkP):''].filter(Boolean).join(' • ');
 const pkAny=()=>pkS.size+pkJ.size+pkP.size>0;
 function selClear(){pkS.clear();pkJ.clear();pkP.clear()}
 function pkItems(){const q=nrm(pkQ),num=/^\d+$/.test(q)?+q:0;
@@ -405,8 +406,10 @@ const stOf=t=>{const l=[...S.logs].reverse().find(x=>x.t==t.id);return l?l.r:nul
 function archT(id,v){const t=S.tasks.find(x=>x.id==id);t.arch=v;if(v)t.doneAt=new Date().toISOString();else delete t.doneAt;save();draw()}
 let arSec='d';const arOpen={};
 function arCard(id,title,badge,sub,det,btn){return `<div class="c"><div class="row sp"><b>${title}</b><span class="m">${badge}</span></div>${sub?`<div class="m">${sub}</div>`:''}${btn?`<div style="margin-top:6px">${btn}</div>`:''}<div class="m" style="margin-top:6px;cursor:pointer" onclick="arOpen['${id}']=!arOpen['${id}'];draw()">${arOpen[id]?'▴':'▾'} التفاصيل</div>${arOpen[id]?`<div class="m" style="line-height:1.9">${det}</div>`:''}</div>`}
-function arDel(k,id){ask('هل تريد الحذف؟',()=>{if(k=='d')S.arc=(S.arc||[]).filter(a=>a.id!=id);else if(k=='c')S.carc=(S.carc||[]).filter(c=>c.id!=id);else if(k=='t')S.tda=(S.tda||[]).filter(x=>x.id!=id);else if(k=='v')pvD().arc=(pvD().arc||[]).filter(x=>x.id!=id);else if(k=='m')S.tasks=S.tasks.filter(t=>t.id!=id);save();toast('تم الحذف');draw()},'نعم، احذف')}
-function arRestore(k,id){
+function arDel(k,id){ask('هل تريد الحذف؟',()=>{if(k=='d')S.arc=(S.arc||[]).filter(a=>a.id!=id);else if(k=='c')S.carc=(S.carc||[]).filter(c=>c.id!=id);else if(k=='t')S.tda=(S.tda||[]).filter(x=>x.id!=id);else if(k=='v')pvD().arc=(pvD().arc||[]).filter(x=>x.id!=id);else if(k=='m')S.tasks=S.tasks.filter(t=>t.id!=id);save();toast('تم الحذف');draw()},'نعم','لا')}
+function arRestore(k,id){ask('هل تريد الاسترجاع؟',()=>arRestore2(k,id),'نعم','لا')}
+function arRestoreM(id){ask('هل تريد الاسترجاع؟',()=>archT(id,false),'نعم','لا')}
+function arRestore2(k,id){
  if(k=='d'){const i=(S.arc||[]).findIndex(a=>a.id==id);if(i<0)return;const a=S.arc[i];const tk=a.tk?JSON.parse(JSON.stringify(a.tk)):{s:a.name,j:0,tm:a.og?mkT(a.og):null,a:1,b:1,type:'مراجعة',stage:0,next:new Date().toISOString()};
   if(tk.id==null||S.tasks.some(x=>x.id==tk.id))tk.id=S.id++;S.tasks.push(tk);S.arc.splice(i,1);
   if(a.lg){const li=S.logs.map((l,ix)=>l.t==a.lg.t&&l.date==a.lg.date&&l.time==a.lg.time?ix:-1).filter(ix=>ix>=0).pop();if(li!==undefined)S.logs.splice(li,1)}
@@ -419,7 +422,7 @@ const arTy=a=>a.ty||(a.tk&&a.tk.type)||((S.tasks||[]).find(x=>x.id==a.tid)||{}).
 function archive(){const iso=ms=>ms?new Date(ms).toISOString():'',rb=(k,id)=>`<div class="row" style="gap:8px"><button class="g" style="padding:5px 12px" onclick="arRestore('${k}',${id})">استرجاع</button><button class="r" style="padding:5px 12px" onclick="arDel('${k}',${id})">حذف</button></div>`;let body='';
  if(arSec=='d'){const A=(S.arc||[]).slice().reverse();
   body=A.map(a=>{const b=BADGE[a.r]||['',''];return arCard('d'+a.id,esc(a.name),b[0]+' '+b[1],(arTyL(a)?arTyL(a)+' • ':'')+(a.sub?esc(a.sub)+' • ':'')+dt(a.en),`بدأت: ${dt(a.st)}<br>انتهت: ${dt(a.en)}<br>الوقت المستغرق: ${hms(a.us)}<br>الوقت الزائد: ${hms(a.ov||0)}<br>الوقت الأصلي: ${a.og?hms(a.og):'—'}`,rb('d',a.id))}).join('')||'<div class="c m">لا مهام مكتملة بعد. تظهر هنا كل مهمة تضغط عليها «تم».</div>';
-  const M=S.tasks.filter(t=>t.arch);if(M.length)body+='<div class="ph">مهام مؤرشفة يدوياً</div>'+M.map(t=>`<div class="c"><div class="row sp"><b>${esc(t.s)}</b><span class="row" style="gap:8px"><button class="g" style="padding:4px 10px" onclick="archT(${t.id},false)">استرجاع</button><button class="r" style="padding:4px 10px" onclick="arDel('m',${t.id})">حذف</button></span></div></div>`).join('')}
+  const M=S.tasks.filter(t=>t.arch);if(M.length)body+='<div class="ph">مهام مؤرشفة يدوياً</div>'+M.map(t=>`<div class="c"><div class="row sp"><b>${esc(t.s)}</b><span class="row" style="gap:8px"><button class="g" style="padding:4px 10px" onclick="arRestoreM(${t.id})">استرجاع</button><button class="r" style="padding:4px 10px" onclick="arDel('m',${t.id})">حذف</button></span></div></div>`).join('')}
  else if(arSec=='c'){const C=(S.carc||[]).slice().sort((a,b)=>(b.e0||0)-(a.e0||0));
   body=C.map(c=>arCard('c'+c.id,esc(c.name),c.heard.length+' من '+c.juz.length+' أجزاء','الأجزاء: '+c.heard.map(uLbl).join('، '),`بدأ: ${c.s0?dt(iso(c.s0)):'—'}<br>انتهى: ${c.e0?dt(iso(c.e0)):'—'}<br>الوقت المستغرق: ${hms(c.el)}<br>الوقت الزائد: ${hms(mOver(c.tm))}<br>الوقت الأصلي: ${hms(mOrig(c.tm))}`,rb('c',c.id))).join('')||'<div class="c m">لا مسابقات منتهية بعد</div>'}
  else{const T=(S.tda||[]).slice().sort((a,b)=>(b.at||0)-(a.at||0)),PV=((S.pv||{}).arc||[]).slice().sort((a,b)=>(b.at||0)-(a.at||0)),f=(x,pre)=>arCard(pre+x.id,esc(x.t),x.s==1?'✓ صح':'✗ غلط','',`أُضيفت: ${x.c?dt(iso(x.c)):'—'}<br>أُنجزت: ${x.at?dt(iso(x.at)):'—'}<br>المدة: ${x.c&&x.at?hms((x.at-x.c)/1000):'—'}`,rb(pre,x.id));
@@ -680,7 +683,7 @@ Object.assign(EN,{"ضع ✓ أو ✗ على المهمة فتنتقل إلى ا�
 Object.assign(ENX,{'الصلاة':'Prayer'});Object.assign(EN,{'الحفظ والمراجعة':'Memorization & review','جداول المراجعة والحفظ':'Review and memorization schedules'});
 Object.assign(ENX,{'الدفتر':'Notebook'});Object.assign(EN,{'تقدّمك وسجل جلساتك':'Your progress and session history'});
 Object.assign(EN,{'مزامنة البيانات':'Sync data','اختر طريقة المزامنة مع حسابك.':'Choose how to sync with your account.','تلقائية':'Automatic','يدوية':'Manual','تُرفع تغييراتك إلى حسابك تلقائياً بعد كل تعديل.':'Your changes are uploaded to your account automatically after every edit.','لا تُرفع التغييرات إلا عند ضغط «مزامنة الآن».':'Changes are only uploaded when you tap “Sync now”.','مزامنة الآن':'Sync now','هل تريد الحذف؟':'Do you want to delete this?','اسحب الصورة داخل الغلاف لتحريكها (يمين/يسار/فوق/تحت)، وكبّر أو صغّر:':'Drag the image inside the cover to reposition it, and zoom in or out:'});
-Object.assign(EN,{'الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
+Object.assign(EN,{'هل تريد الاسترجاع؟':'Do you want to restore it?','الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
 const ENK=Object.keys(EN).sort((a,b)=>b.length-a.length);
 function trs(t){const tt=t.trim();if(tt&&ENX[tt]!==undefined)return t.replace(tt,ENX[tt]);if(tt&&SMX[tt]!==undefined)return t.replace(tt,SMX[tt]);if(tt&&EN[tt]!==undefined)return t.replace(tt,EN[tt]);for(const[a,b]of ENR)t=t.replace(a,b);for(const k of ENK)if(t.includes(k))t=t.split(k).join(EN[k]);if(/[\u0600-\u06FF]/.test(t))t=t.replace(SMRE,m=>SMAP[m]||m);return t.replace(/؟/g,'?')}
 const trSkip=n=>{for(;n;n=n.parentNode){if(/^(TEXTAREA|SCRIPT|STYLE)$/.test(n.nodeName||''))return true;if(n.getAttribute&&n.getAttribute('data-notr')!==null)return true;if(n.isContentEditable||(n.getAttribute&&n.getAttribute('contenteditable')==='true'))return true}return false};
@@ -954,7 +957,9 @@ const _cn={};function cntries(){const l=S.lang=='en'?'en':'ar';if(!_cn[l]){let d
 const nrm=x=>(x||'').toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').trim();
 function ctryList(q){q=nrm(q);let g=-1,o='';cntries().forEach(([c,n,f,gp,en])=>{if(q&&!(nrm(n).includes(q)||en.toLowerCase().includes(q)||c.toLowerCase()==q))return;if(gp!==g){g=gp;o+=`<div class="dsec" style="padding:10px 4px 4px">${GN[gp]}</div>`}o+=`<div onclick="setCountry('${c}')" style="padding:10px 6px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between"><span>${f} ${n}</span><b style="color:var(--pri)">${prof().country==c?'✓':''}</b></div>`});return o||'<div class="m" style="padding:10px">لا نتائج</div>'}
 function ctrySheet(){$('#sh').innerHTML=shW(`<b>${svg('globe')} اختر بلد الإقامة</b><input id="cq" placeholder="ابحث عن دولة..." autocomplete="off" oninput="$('#cql').innerHTML=ctryList(this.value)" style="margin-top:8px"><div id="cql" style="max-height:55vh;overflow-y:auto">${ctryList('')}</div>`)}
-function migrate(){if(!S.tdm){S.td=S.td||[];(S.nbs||[]).forEach(b=>{(b.todos||[]).forEach(x=>S.td.push({...x,s:x.s===undefined?(x.d?1:0):x.s}));delete b.todos});S.tdm=1}
+const pgNorm=x=>typeof x!='string'?x:x.replace(/صفحات: ([\d–]+(?:\s*[،و]\s*[\d–]+)*)/g,(m,l)=>{const p=l.split(/\s*[،و]\s*/).filter(Boolean);return p.length==1&&!p[0].includes('–')?'صفحة '+p[0]:'صفحات: '+p.join(' و ')});
+function migPg(){(S.tasks||[]).forEach(t=>{t.s=pgNorm(t.s)});(S.logs||[]).forEach(l=>{l.s=pgNorm(l.s)});(S.arc||[]).forEach(a=>{a.name=pgNorm(a.name);a.sub=pgNorm(a.sub);if(a.tk)a.tk.s=pgNorm(a.tk.s)})}
+function migrate(){migPg();if(!S.tdm){S.td=S.td||[];(S.nbs||[]).forEach(b=>{(b.todos||[]).forEach(x=>S.td.push({...x,s:x.s===undefined?(x.d?1:0):x.s}));delete b.todos});S.tdm=1}
  (S.cont||[]).forEach(c=>{c.juz=(c.juz||[]).map(x=>typeof x=='number'?'ج'+x:x);c.heard=(c.heard||[]).map(x=>typeof x=='number'?'ج'+x:x)});
  S.td=S.td||[];S.td.filter(x=>x.s).forEach(x=>(S.tda=S.tda||[]).push(x));S.td=S.td.filter(x=>!x.s);
  const P=S.pv;if(P&&P.items){P.arc=P.arc||[];P.items.filter(x=>x.s).forEach(x=>P.arc.push(x));P.items=P.items.filter(x=>!x.s)}
