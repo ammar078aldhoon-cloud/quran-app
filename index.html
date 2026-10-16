@@ -612,7 +612,7 @@ async function doRs(id){if(!id){sync('⚠️ اكتب بريدك أو اسم ا�
  try{const m=await resolveEmail(id);try{fa.languageCode='en'}catch(e){}
   try{const ms=await fa.fetchSignInMethodsForEmail(m);if(ms.length&&!ms.includes('password')){sync('ℹ️ هذا البريد مسجّل بواسطة Google فقط: ادخل بزر Google ثم أنشئ كلمة مرور من «إعدادات الحساب».');try{fa.languageCode='ar'}catch(e){}busy=0;return}}catch(e){}
   await fa.sendPasswordResetEmail(m,{url:location.origin+location.pathname,handleCodeInApp:false});
-  sync('✅ طُلب إرسال الرابط إلى '+m+' — افحص الوارد وكذلك «الرسائل غير المرغوبة (Spam)» وقد يتأخر دقائق. إذا لم يصل، فغالباً حسابك مسجّل بواسطة Google فقط: ادخل بزر Google ثم أنشئ كلمة مرور من «إعدادات الحساب».')}catch(e){er(e)}try{fa.languageCode='ar'}catch(e){}busy=0}
+  sync('✅ تم إرسال رسالة إلى \u2066'+m.slice(0,3)+'*'.repeat(Math.max(0,m.length-3))+'\u2069')}catch(e){er(e)}try{fa.languageCode='ar'}catch(e){}busy=0}
 async function aRs(){return doRs($('#ae').value.trim())}
 async function out(){
  clearTimeout(pt);pt=null;if(!(await pushNow(true))){tab='se';draw();sync('تعذّر رفع بياناتك، لم يتم الخروج ⚠️');return}
@@ -683,7 +683,7 @@ Object.assign(EN,{"ضع ✓ أو ✗ على المهمة فتنتقل إلى ا�
 Object.assign(ENX,{'الصلاة':'Prayer'});Object.assign(EN,{'الحفظ والمراجعة':'Memorization & review','جداول المراجعة والحفظ':'Review and memorization schedules'});
 Object.assign(ENX,{'الدفتر':'Notebook'});Object.assign(EN,{'تقدّمك وسجل جلساتك':'Your progress and session history'});
 Object.assign(EN,{'مزامنة البيانات':'Sync data','اختر طريقة المزامنة مع حسابك.':'Choose how to sync with your account.','تلقائية':'Automatic','يدوية':'Manual','تُرفع تغييراتك إلى حسابك تلقائياً بعد كل تعديل.':'Your changes are uploaded to your account automatically after every edit.','لا تُرفع التغييرات إلا عند ضغط «مزامنة الآن».':'Changes are only uploaded when you tap “Sync now”.','مزامنة الآن':'Sync now','هل تريد الحذف؟':'Do you want to delete this?','اسحب الصورة داخل الغلاف لتحريكها (يمين/يسار/فوق/تحت)، وكبّر أو صغّر:':'Drag the image inside the cover to reposition it, and zoom in or out:'});
-Object.assign(EN,{'هل تريد الاسترجاع؟':'Do you want to restore it?','الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
+Object.assign(EN,{'هل تريد الاسترجاع؟':'Do you want to restore it?','تم إرسال رسالة إلى':'Message sent to','الحسابات':'Accounts','إضافة حساب':'Add account','انتهت جلسة هذا الحساب، أضفه من جديد':'This account session expired, add it again','تم التبديل إلى':'Switched to','هذا الحساب مضاف مسبقاً':'This account is already added'});
 const ENK=Object.keys(EN).sort((a,b)=>b.length-a.length);
 function trs(t){const tt=t.trim();if(tt&&ENX[tt]!==undefined)return t.replace(tt,ENX[tt]);if(tt&&SMX[tt]!==undefined)return t.replace(tt,SMX[tt]);if(tt&&EN[tt]!==undefined)return t.replace(tt,EN[tt]);for(const[a,b]of ENR)t=t.replace(a,b);for(const k of ENK)if(t.includes(k))t=t.split(k).join(EN[k]);if(/[\u0600-\u06FF]/.test(t))t=t.replace(SMRE,m=>SMAP[m]||m);return t.replace(/؟/g,'?')}
 const trSkip=n=>{for(;n;n=n.parentNode){if(/^(TEXTAREA|SCRIPT|STYLE)$/.test(n.nodeName||''))return true;if(n.getAttribute&&n.getAttribute('data-notr')!==null)return true;if(n.isContentEditable||(n.getAttribute&&n.getAttribute('contenteditable')==='true'))return true}return false};
